@@ -7,6 +7,8 @@ import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.rooms.AbstractRoom;
 import customlowhealthmusic.ModFile;
 
+import static customlowhealthmusic.ModFile.checkPlayerHealth;
+
 @SpirePatch(clz = AbstractPlayer.class, method = "damage")
 public class HealthWarningDamagePatch {
 
@@ -22,12 +24,7 @@ public class HealthWarningDamagePatch {
     }
 
     private static void checkHealthWarning(AbstractPlayer player) {
-        float healthThreshold = player.maxHealth * 0.2f;
-        if (player.currentHealth <= healthThreshold && !ModFile.isPlaying) {
-            ModFile.playHealthWarningMusic();
-        } else if (player.currentHealth > healthThreshold && ModFile.isPlaying) {
-            ModFile.stopHealthWarningMusic();
-        }
+        ModFile.checkPlayerHealth();
     }
 }
 

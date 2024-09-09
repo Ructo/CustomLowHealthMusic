@@ -4,6 +4,7 @@ import com.evacipated.cardcrawl.modthespire.lib.SpirePatch;
 import com.megacrit.cardcrawl.characters.AbstractPlayer;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.rooms.AbstractRoom;
+import customlowhealthmusic.ModFile;
 
 import static customlowhealthmusic.ModFile.checkPlayerHealth;
 
@@ -22,7 +23,7 @@ public class HealthWarningHealPatch {
     }
 
     private static void checkHealthWarning(AbstractPlayer player) {
-        checkPlayerHealth();
+        ModFile.checkPlayerHealth();
 
     }
 }

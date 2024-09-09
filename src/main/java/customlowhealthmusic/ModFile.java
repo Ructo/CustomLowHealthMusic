@@ -23,6 +23,7 @@ import com.megacrit.cardcrawl.helpers.input.InputHelper;
 import com.megacrit.cardcrawl.monsters.AbstractMonster;
 import com.megacrit.cardcrawl.monsters.exordium.Lagavulin;
 import com.megacrit.cardcrawl.rooms.*;
+import com.megacrit.cardcrawl.screens.DeathScreen;
 import com.megacrit.cardcrawl.screens.options.DropdownMenu;
 import com.megacrit.cardcrawl.screens.options.DropdownMenuListener;
 import customlowhealthmusic.patch.HexaghostActivationFieldPatch;
@@ -61,6 +62,7 @@ public class ModFile implements
     private static final String SELECTED_FILE_KEY = "selectedWarningIntroFile";
     public static boolean isPlaying = false;
     public static boolean isTesting = false;
+    public static boolean isDead = false;
     public static boolean isBossStingerPlaying = false;  // Flag for boss stinger
     public static boolean bossBattleEnded = false;       // Prevent health checks after boss defeat
     public static String currentTempMusicKey = null;
@@ -73,6 +75,7 @@ public class ModFile implements
     private static boolean lowHealthMusicEnabled = true;
     private static float volumeMultiplier = 1.0f;
     public static ModLabel playingLabel;
+    private static float lowHealthThreshold = 0.2f;
     private static final String[] SPECIAL_TEMP_TRACKS = {
             "CREDITS"
     };
@@ -187,18 +190,17 @@ public class ModFile implements
             e.printStackTrace();
         }
     }
-
-
     public static void stopCurrentMusic() {
-        if (currentlyPlayingMusic != null && !isTesting ) {
-            currentlyPlayingMusic.stop();
-            currentlyPlayingMusic.dispose();
-            currentlyPlayingMusic = null;
-            isPlaying = false;
-            currentTempMusicKey = null;
-            System.out.println("Music has been stopped.");
+        if (currentlyPlayingMusic != null) {
+            // Stop music only when leaving the settings panel or when not in testing mode
+                currentlyPlayingMusic.stop();
+                currentlyPlayingMusic.dispose();
+                currentlyPlayingMusic = null;
+                isPlaying = false;
+                System.out.println("Music stopped.");
+            }
         }
-    }
+
 
     public static void stopTempBgm() {
         CardCrawlGame.music.silenceTempBgmInstantly();
@@ -272,23 +274,9 @@ public class ModFile implements
         }
         return currentWarningIntroFilePath;
     }
-    public static void checkForDeath() {
-        // Check if the player is dead and ensure the death stinger has priority
-        if (AbstractDungeon.player != null && AbstractDungeon.player.isDead) {
-            System.out.println("Player has died. Ensuring death stinger takes priority.");
-
-            // Stop all other music, but do NOT stop the death stinger
-            if (!isBossStingerPlaying) {
-                stopHealthWarningMusic();
-                CardCrawlGame.music.silenceTempBgmInstantly();
-                isPlaying = false;  // Reset the low-health music flag
-            }
-        }
-    }
-
     public void receivePostInitialize() {
         settingsPanel = new ModPanel();
-        if (playingLabel != null ) {
+        if (playingLabel != null) {
             playingLabel.text = ""; // Ensure the label is cleared on panel open
         }
         // Load available warning intro files (clear list first)
@@ -300,10 +288,11 @@ public class ModFile implements
         // Toggle for enabling/disabling low health music
         ModLabeledToggleButton lowHealthMusicToggle = new ModLabeledToggleButton(
                 "Enable Low Health Music",
-                386.686f, 712.5f, Settings.CREAM_COLOR, FontHelper.charDescFont,
+                386.686f, 720f, Settings.CREAM_COLOR, FontHelper.charDescFont,
                 lowHealthMusicEnabled,
                 settingsPanel,
-                (label) -> {},
+                (label) -> {
+                },
                 (button) -> {
                     lowHealthMusicEnabled = button.enabled;
                     savePreferences();
@@ -329,7 +318,7 @@ public class ModFile implements
             @Override
             public void render(SpriteBatch sb) {
                 // Render the dropdown at specific coordinates
-                fileDropdownMenu.render(sb, 400f * Settings.xScale, 600f * Settings.yScale);
+                fileDropdownMenu.render(sb, 386.686f * Settings.xScale, 515f * Settings.yScale);
             }
 
             @Override
@@ -356,11 +345,12 @@ public class ModFile implements
         ModLabel currentFileLabel = new ModLabel(
                 "Current File:",
                 500f,
-                651f,
+                550f,
                 Settings.CREAM_COLOR,
                 FontHelper.charDescFont,
                 settingsPanel,
-                (label) -> {}
+                (label) -> {
+                }
         );
         settingsPanel.addUIElement(currentFileLabel);
 
@@ -370,18 +360,19 @@ public class ModFile implements
         ModLabel explanationLabel = new ModLabel(
                 explanationText,
                 400f,
-                450f,
+                380f,
                 Settings.CREAM_COLOR,
                 FontHelper.charDescFont,
                 settingsPanel,
-                (label) -> {}
+                (label) -> {
+                }
         );
         settingsPanel.addUIElement(explanationLabel);
 
         ModSliderBetter volumeSlider = new ModSliderBetter(
                 "Volume Multiplier (x0.0 - x2.0)", // Slider label
-                660.0F, // x position on the screen
-                700.0F, // y position on the screen
+                690.0F, // x position on the screen
+                685.0F, // y position on the screen
                 0.0F, // Min value
                 2.0F, // Max value
                 getVolumeMultiplier(), // Default value
@@ -406,8 +397,8 @@ public class ModFile implements
         settingsPanel.addUIElement(volumeSlider);
 
         ModButton openFolderButton = new ModButton(
-                375.0f, // X position
-                300.0f, // Y position
+                386.686f, // X position
+                220.0f, // Y position
                 settingsPanel,
                 (button) -> {
                     openFileExplorer(getCustomMusicFolderPath());
@@ -418,22 +409,24 @@ public class ModFile implements
 // Create the label next to the button
         ModLabel folderButtonLabel = new ModLabel(
                 "Open Custom Music Folder", // Text
-                500.0f, // X position, adjust as needed to be right of the button
-                355.0f, // Y position, slightly higher to align with button
+                511.0f, // X position, adjust as needed to be right of the button
+                275.0f, // Y position, slightly higher to align with button
                 Settings.CREAM_COLOR, // Text color
                 FontHelper.charDescFont, // Font
                 settingsPanel,
-                (label) -> {}
+                (label) -> {
+                }
         );
         settingsPanel.addUIElement(folderButtonLabel);
 
 // Button for previewing the selected music file
         ModButton previewButton = new ModButton(
                 760.0f, // X position, adjust as needed
-                520.0f, // Y position, align with dropdown
+                440f, // Y position, align with dropdown
                 settingsPanel,
                 (button) -> {
-                    if (isPlaying) {
+                    if (isTesting || isPlaying) {
+                        // If it's testing and music is playing, stop it
                         isTesting = false;
                         stopCurrentMusic(); // Stop music if already playing
                         System.out.println("Music stopped.");
@@ -442,12 +435,14 @@ public class ModFile implements
                         }
                         CardCrawlGame.music.unsilenceBGM(); // Resume the normal background music
                     } else {
+                        // If not testing, start playing the preview music
                         String selectedWarningIntro = getCurrentWarningIntroFileName();
                         String fullPath = getCustomMusicFolderPath() + File.separator + selectedWarningIntro;
                         System.out.println("Attempting to play: " + fullPath);
-                        isTesting = true;
+                        isTesting = true;  // Set testing mode to true
                         CardCrawlGame.music.silenceBGMInstantly(); // Silence the normal background music
                         playTempBgm(fullPath); // Play selected music file
+                        isPlaying = true;
                         System.out.println("Music playing: " + selectedWarningIntro);
                         if (playingLabel != null) {
                             playingLabel.text = "Playing..."; // Show the label when the music is playing
@@ -462,11 +457,12 @@ public class ModFile implements
         playingLabel = new ModLabel(
                 "", // Initially empty
                 890.0f, // X position, adjust as needed to be right of the button
-                580.0f, // Y position, slightly higher to align with button
+                490.0f, // Y position, slightly higher to align with button
                 Settings.CREAM_COLOR, // Text color
                 FontHelper.charDescFont, // Font
                 settingsPanel,
-                (label) -> {}
+                (label) -> {
+                }
         );
         settingsPanel.addUIElement(playingLabel);
         if (isTesting) {
@@ -479,14 +475,33 @@ public class ModFile implements
         ModLabel previewButtonLabel = new ModLabel(
                 "Preview", // Text
                 777.0f, // X position, adjust as needed to be right of the button
-                625.0f, // Y position, slightly higher to align with button
+                550.0f, // Y position, slightly higher to align with button
                 Settings.CREAM_COLOR, // Text color
                 FontHelper.charDescFont, // Font
                 settingsPanel,
-                (label) -> {}
+                (label) -> {
+                }
         );
         settingsPanel.addUIElement(previewButtonLabel);
 
+        ModSliderBetter lowHealthSlider = new ModSliderBetter(
+                "Health % of Max HP Trigger", // Slider label
+                690.0F, // X position
+                630.0F, // Y position
+                0.0F, // Min value (0%)
+                100.0F, // Max value (100%)
+                getLowHealthThreshold() * 100.0F, // Default value (current threshold percentage)
+                "%.0f%%", // Format string for displayed value
+                settingsPanel,
+                (slider) -> {
+                    float sliderValue = slider.getValue();
+                    setLowHealthThreshold(sliderValue / 100.0F);  // Convert percentage to decimal
+                    savePreferences();  // Save the threshold to preferences
+                }
+        );
+
+        lowHealthSlider.setValue(getLowHealthThreshold() * 100.0F);  // Set slider value to current threshold
+        settingsPanel.addUIElement(lowHealthSlider);
 
         Texture badgeTexture = new Texture(Gdx.files.internal("customlowhealthmusicResources/images/ui/badge.png"));
         BaseMod.registerModBadge(badgeTexture, "Custom Low Health Music", "Ninja Puppy", "Custom music for low health situations.", settingsPanel);
@@ -548,7 +563,7 @@ public class ModFile implements
 
     @Override
     public void receivePostBattle(AbstractRoom abstractRoom) {
-        if (lowHealthMusicEnabled) {
+        if (lowHealthMusicEnabled && AbstractDungeon.screen != AbstractDungeon.CurrentScreen.DEATH) {
             stopHealthWarningMusic();
             resetMusicStates();
         }
@@ -564,28 +579,35 @@ public class ModFile implements
 
     @Override
     public void receivePostUpdate() {
-        if (!CardCrawlGame.isInARun() || (AbstractDungeon.player != null && AbstractDungeon.player.isDead)){
-            stopHealthWarningMusic();  // Stop music if not in a run
-            CardCrawlGame.music.silenceTempBgmInstantly();
-            isPlaying = false;
-
-        } else if (AbstractDungeon.currMapNode != null && AbstractDungeon.actionManager != null && ModFile.isPlaying) {
-            if (AbstractDungeon.getCurrRoom() == null || !AbstractDungeon.getCurrRoom().phase.equals(AbstractRoom.RoomPhase.COMBAT)) {
-                stopHealthWarningMusic();  // Stop music if not in a combat room
+        // Check if the player is on the Death Screen to avoid stopping music prematurely
+        if (!CardCrawlGame.isInARun() && AbstractDungeon.screen != AbstractDungeon.CurrentScreen.DEATH) {
+            if (!isTesting && !BaseMod.modSettingsUp){
+                stopHealthWarningMusic();  // Stop health music only if not on the death screen
+                CardCrawlGame.music.silenceTempBgmInstantly();  // Silence background music, but not on death screen
             }
-            if (!BaseMod.modSettingsUp && !CardCrawlGame.isInARun()) {
-                stopCurrentMusic(); // Stop the preview music if the panel is closed
-                isTesting = false; // Reset the testing flag
-
-                    playingLabel.text = ""; // Clear the "Playing..." label
-
+        }else if (AbstractDungeon.screen == AbstractDungeon.CurrentScreen.DEATH) {
+        isDead = true;
+            stopHealthWarningMusic();
+        }
+        else if (AbstractDungeon.currMapNode != null && AbstractDungeon.actionManager != null && isPlaying) {
+            // Ensure that music only plays in combat rooms and not during transitions
+            if (AbstractDungeon.getCurrRoom() == null || !AbstractDungeon.getCurrRoom().phase.equals(AbstractRoom.RoomPhase.COMBAT)) {
+                stopHealthWarningMusic();  // Stop music if not in combat
+            }
+            if (!BaseMod.modSettingsUp && isTesting) {
+                stopCurrentMusic();  // Stop preview music when settings panel is closed
+                isTesting = false;  // Reset testing flag
+                if (playingLabel != null) {
+                    playingLabel.text = "";  // Clear the "Playing..." label
+                }
                 System.out.println("Mod config closed, preview music stopped.");
             }
-            // Adjust the volume based on the current game music volume and your multiplier
-            if (currentlyPlayingMusic != null) {
-                float adjustedVolume = Settings.MUSIC_VOLUME * volumeMultiplier;
-                currentlyPlayingMusic.setVolume(adjustedVolume);
-            }
+        }
+
+        // Adjust volume based on game settings
+        if (currentlyPlayingMusic != null) {
+            float adjustedVolume = Settings.MUSIC_VOLUME * volumeMultiplier;
+            currentlyPlayingMusic.setVolume(adjustedVolume);
         }
     }
 
@@ -650,15 +672,22 @@ public class ModFile implements
             }
         }
     }
+    public static float getLowHealthThreshold() {
+        return lowHealthThreshold;
+    }
 
+    public static void setLowHealthThreshold(float threshold) {
+        lowHealthThreshold = threshold;
+    }
     public static AbstractGameAction checkPlayerHealth() {
         if (!lowHealthMusicEnabled) {
-            return null; // Skip health check if the option is disabled
+            return null;  // Skip health check if the option is disabled
         }
-        AbstractPlayer player = AbstractDungeon.player;
-        float healthThreshold = player.maxHealth * 0.2f;
 
-        if (player.currentHealth <= healthThreshold && player.currentHealth > 0 && !ModFile.isPlaying) {
+        AbstractPlayer player = AbstractDungeon.player;
+        float healthThreshold = player.maxHealth * getLowHealthThreshold();  // Use user-defined threshold
+
+        if (player.currentHealth <= healthThreshold && !ModFile.isPlaying) {
             playHealthWarningMusic();
             ModFile.isPlaying = true;
         } else if (player.currentHealth > healthThreshold && ModFile.isPlaying) {
@@ -693,7 +722,6 @@ public class ModFile implements
             String selectedWarningIntro = getCurrentWarningIntroFileName(); // Fetch the current file name
             String fullPath = getCustomMusicFolderPath() + File.separator + selectedWarningIntro; // Get the full path
             System.out.println("Playing selected file: " + fullPath);
-
             ModFile.playTempBgm(fullPath); // Play the music using the full path
             ModFile.isPlaying = true;
         }
@@ -702,7 +730,9 @@ public class ModFile implements
     public static void stopHealthWarningMusic() {
         if (isBossStingerPlaying) {
             return; // Prevent any music from interrupting the boss stinger.
-        }
+        } else if (isDead){
+            stopCurrentMusic();
+            }
         if (isPlaying) {
             if (AbstractDungeon.currMapNode == null ||AbstractDungeon.getCurrRoom() == null || AbstractDungeon.getCurrRoom().monsters == null) {
                 stopCurrentMusic();
@@ -762,7 +792,6 @@ public class ModFile implements
                 }
             } else {
                 // If monsters are still alive, play the appropriate music for elites or bosses
-                if (AbstractDungeon.player.currentHealth > 0);
                 stopCurrentMusic();
                 {
                     if (isFightingLagavulin) {

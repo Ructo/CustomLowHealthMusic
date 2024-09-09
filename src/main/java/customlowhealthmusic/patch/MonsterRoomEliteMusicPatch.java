@@ -20,14 +20,6 @@ public class MonsterRoomEliteMusicPatch {
     @SpirePostfixPatch
     public static void Postfix(MonsterRoomElite __instance) {
         ModFile.checkPlayerHealth();
-        ModFile.checkForDeath();  // Ensure no music plays after death
-
-        // Check if the player is dead and prevent elite music from overriding the death stinger
-        if (AbstractDungeon.player != null && AbstractDungeon.player.isDead) {
-            System.out.println("Player has died, ensuring no elite music plays.");
-            CardCrawlGame.music.silenceTempBgmInstantly();  // Stop elite music if the player is dead
-            return;  // Exit to ensure no other music is played
-        }
 
         if (ModFile.isPlaying) {
             // Prevent the elite music from overriding the low-health music
