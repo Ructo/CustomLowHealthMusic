@@ -551,7 +551,6 @@ public class ModFile implements
     @Override
     public void receiveOnBattleStart(AbstractRoom abstractRoom) {
         if (lowHealthMusicEnabled) {
-            resetMusicStates();
             updateRoomType(abstractRoom);
             checkPlayerHealth();
         }
@@ -815,7 +814,7 @@ public class ModFile implements
                     } else if (isFightingHeart) {
                         stopCurrentMusic(); // Stop the current health warning music
                         CardCrawlGame.music.silenceTempBgmInstantly();
-                        CardCrawlGame.music.playTempBgmInstantly("STS_Boss4_v6.ogg");
+                        AbstractDungeon.getCurrRoom().playBgmInstantly("BOSS_ENDING");
                     } else if (isFightingSpireSpearOrShield) {
                         stopCurrentMusic(); // Stop the current health warning music
                         CardCrawlGame.music.silenceTempBgmInstantly();
