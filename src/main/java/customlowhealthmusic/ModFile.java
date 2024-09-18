@@ -60,10 +60,12 @@ public class ModFile implements
     private static final String PREFS_NAME = "customlowhealthmusicPrefs";
     private static final String LOW_HEALTH_MUSIC_ENABLED_KEY = "lowHealthMusicEnabled";
     private static final String SELECTED_FILE_KEY = "selectedWarningIntroFile";
+    private static final String LOOPING_PREF_KEY = "isMusicLooping";
     public static boolean isPlaying = false;
     public static boolean isTesting = false;
     public static boolean isDead = false;
-    public static boolean isBossStingerPlaying = false;  // Flag for boss stinger
+    private static boolean isMusicLooping = true;
+     public static boolean isBossStingerPlaying = false;  // Flag for boss stinger
     public static boolean bossBattleEnded = false;       // Prevent health checks after boss defeat
     public static String currentTempMusicKey = null;
     public static String currentRoomType = null;
@@ -76,6 +78,10 @@ public class ModFile implements
     private static float volumeMultiplier = 1.0f;
     public static ModLabel playingLabel;
     private static float lowHealthThreshold = 0.2f;
+    private static String lastPlayedTrack = null;
+    private DropdownMenu fileDropdownMenu;
+    private IUIElement dropdownWrapper;
+
     private static final String[] SPECIAL_TEMP_TRACKS = {
             "CREDITS"
     };
@@ -99,19 +105,25 @@ public class ModFile implements
         lowHealthMusicEnabled = prefs.getBoolean(LOW_HEALTH_MUSIC_ENABLED_KEY, true);
         currentWarningIntroFilePath = prefs.getString(SELECTED_FILE_KEY, "Pokemon Low HP.ogg"); // Default to Pokemon if nothing is saved
         volumeMultiplier = prefs.getFloat("volumeMultiplier", 1.0f);
-        // If the path is not null, set the currentFileIndex to the correct file
-        if (currentWarningIntroFilePath != null && availableWarningIntroFiles.contains(currentWarningIntroFilePath)) {
-            currentFileIndex = availableWarningIntroFiles.indexOf(currentWarningIntroFilePath);
+
+        // Load the looping preference
+        isMusicLooping = prefs.getBoolean(LOOPING_PREF_KEY, true); // Default to true
+        System.out.println("Preferences loaded with looping: " + isMusicLooping);
+
+        // Determine the current file index for the dropdown menu
+        if ("RANDOM_SELECTION".equals(currentWarningIntroFilePath)) {
+            currentFileIndex = 0; // Index for "Random Selection"
+            System.out.println("Loaded selected file from preferences: Random Selection");
+        } else if (currentWarningIntroFilePath != null && availableWarningIntroFiles.contains(currentWarningIntroFilePath)) {
+            currentFileIndex = availableWarningIntroFiles.indexOf(currentWarningIntroFilePath) + 1; // Adjust index
             System.out.println("Loaded selected file from preferences: " + currentWarningIntroFilePath);
         } else {
             System.out.println("Saved file not found or no preference, defaulting to Pokemon Low HP.ogg");
             currentWarningIntroFilePath = "Pokemon Low HP.ogg";
-            currentFileIndex = availableWarningIntroFiles.indexOf(currentWarningIntroFilePath);
+            currentFileIndex = availableWarningIntroFiles.indexOf(currentWarningIntroFilePath) + 1;
             savePreferences(); // Save the default selection
         }
     }
-
-
     private void savePreferences() {
         Preferences prefs = Gdx.app.getPreferences(PREFS_NAME);
         prefs.putBoolean(LOW_HEALTH_MUSIC_ENABLED_KEY, lowHealthMusicEnabled);
@@ -122,9 +134,14 @@ public class ModFile implements
             prefs.putString(SELECTED_FILE_KEY, currentWarningIntroFilePath);
         } else {
             System.out.println("No file selected, saving default.");
+            prefs.putString(SELECTED_FILE_KEY, "Pokemon Low HP.ogg"); // Default value
         }
 
+        // Save the looping preference
+        prefs.putBoolean(LOOPING_PREF_KEY, isMusicLooping);
+
         prefs.flush(); // Ensure changes are saved immediately
+        System.out.println("Preferences saved with looping: " + isMusicLooping);
     }
 
     public static float getVolumeMultiplier() {
@@ -142,14 +159,7 @@ public class ModFile implements
 
     @Override
     public void receiveAddAudio() {
-        // Adding audio files through BaseMod
-        for (String fileName : availableWarningIntroFiles) {
-            File file = new File(getCustomMusicFolderPath() + File.separator + fileName);
-            if (file.exists()) {  // Check if the file exists before adding
-                String fileKey = fileName.substring(0, fileName.length() - 4); // Remove ".ogg" from the name
-                BaseMod.addAudio(makeID(fileKey), file.getAbsolutePath());
-            }
-        }
+        registerCustomAudio();
     }
 
     @Override
@@ -171,36 +181,59 @@ public class ModFile implements
         return modID + ":" + idText;
     }
 
-    public static void playTempBgm(String fullPath) {
-        if (!lowHealthMusicEnabled) return;
+    public static void playTempBgm(String path) {
         try {
-            if (!isTesting) {
-                stopCurrentMusic();
+            // Stop any currently playing music
+            stopCurrentMusic();
+
+            System.out.println("Attempting to play file: " + path);
+            FileHandle fileHandle = Gdx.files.absolute(path);
+
+            if (!fileHandle.exists()) {
+                System.out.println("Music file not found: " + path);
+                return;
             }
-            System.out.println("Attempting to play file: " + fullPath);
-            FileHandle fileHandle = Gdx.files.absolute(fullPath); // Use the full path here
+
             currentlyPlayingMusic = Gdx.audio.newMusic(fileHandle);
-            float adjustedVolume = Settings.MUSIC_VOLUME * volumeMultiplier;
-            currentlyPlayingMusic.setVolume(adjustedVolume);
-            currentlyPlayingMusic.setLooping(true);  // Set the music to loop
+            currentlyPlayingMusic.setLooping(isMusicLooping); // Use the user's preference
+            currentlyPlayingMusic.setVolume(Settings.MUSIC_VOLUME * volumeMultiplier);
+
+            if (!isMusicLooping) {
+                // Set an OnCompletionListener to handle when the music finishes playing
+                currentlyPlayingMusic.setOnCompletionListener(new Music.OnCompletionListener() {
+                    @Override
+                    public void onCompletion(Music music) {
+                        System.out.println("Music playback completed.");
+                        // Set flags to indicate music has stopped
+                        isPlaying = false;
+                        currentlyPlayingMusic = null;
+                        // No need to call stopCurrentMusic() since the music has already finished playing
+                    }
+                });
+            }
+
             currentlyPlayingMusic.play();
             isPlaying = true;
         } catch (Exception e) {
-            System.err.println("Music file not found or failed to load: " + fullPath);
+            System.err.println("Failed to play music: " + path);
             e.printStackTrace();
+            // Ensure the music system remains functional
+            stopCurrentMusic();
+            isPlaying = false;
+            currentlyPlayingMusic = null;
         }
     }
+
     public static void stopCurrentMusic() {
         if (currentlyPlayingMusic != null) {
-            // Stop music only when leaving the settings panel or when not in testing mode
-                currentlyPlayingMusic.stop();
-                currentlyPlayingMusic.dispose();
-                currentlyPlayingMusic = null;
-                isPlaying = false;
-                System.out.println("Music stopped.");
-            }
+            currentlyPlayingMusic.stop();
+            // Remove the completion listener to prevent potential memory leaks
+            currentlyPlayingMusic.setOnCompletionListener(null);
+            currentlyPlayingMusic.dispose();
+            currentlyPlayingMusic = null;
+            isPlaying = false;
         }
-
+    }
 
     public static void stopTempBgm() {
         CardCrawlGame.music.silenceTempBgmInstantly();
@@ -215,13 +248,12 @@ public class ModFile implements
             dir.mkdirs(); // Create the directory if it doesn't exist
         }
 
-        // Copy default files from resources if they are missing
-        copyDefaultFiles(dir);
-
         // Now, load the available .ogg files from the directory
-        for (File file : dir.listFiles()) {
-            if (file.isFile() && file.getName().endsWith(".ogg")) {
-                availableWarningIntroFiles.add(file.getName());
+        if (dir.listFiles() != null) {
+            for (File file : dir.listFiles()) {
+                if (file.isFile() && file.getName().endsWith(".ogg")) {
+                    availableWarningIntroFiles.add(file.getName());
+                }
             }
         }
 
@@ -230,7 +262,13 @@ public class ModFile implements
         }
     }
 
-    private void copyDefaultFiles(File targetDir) {
+
+    private void restoreDefaultTracks() {
+        File targetDir = new File(getCustomMusicFolderPath());
+        if (!targetDir.exists()) {
+            targetDir.mkdirs(); // Create the directory if it doesn't exist
+        }
+
         String[] defaultFiles = {
                 "Pokemon Low HP.ogg",
                 "Sonic Drowning Remix.ogg",
@@ -244,33 +282,105 @@ public class ModFile implements
 
         for (String fileName : defaultFiles) {
             File targetFile = new File(targetDir, fileName);
-            if (!targetFile.exists()) { // Only copy if the file doesn't already exist
-                try (InputStream in = getClass().getResourceAsStream("/customlowhealthmusicResources/audio/music/" + fileName)) {
-                    if (in != null) {
-                        try (OutputStream out = Files.newOutputStream(targetFile.toPath())) {
-                            byte[] buffer = new byte[1024];
-                            int length;
-                            while ((length = in.read(buffer)) > 0) {
-                                out.write(buffer, 0, length);
-                            }
+            try (InputStream in = getClass().getResourceAsStream("/customlowhealthmusicResources/audio/music/" + fileName)) {
+                if (in != null) {
+                    try (OutputStream out = Files.newOutputStream(targetFile.toPath())) {
+                        byte[] buffer = new byte[1024];
+                        int length;
+                        while ((length = in.read(buffer)) > 0) {
+                            out.write(buffer, 0, length);
                         }
-                        System.out.println("Copied default file: " + fileName);
-                    } else {
-                        System.err.println("Default file not found in resources: " + fileName);
                     }
-                } catch (Exception e) {
-                    System.err.println("Failed to copy default file: " + fileName);
-                    e.printStackTrace();
+                    System.out.println("Restored default file: " + fileName);
+                } else {
+                    System.err.println("Default file not found in resources: " + fileName);
                 }
-            } else {
-                System.out.println("File already exists, skipping copy: " + fileName);
+            } catch (Exception e) {
+                System.err.println("Failed to restore default file: " + fileName);
+                e.printStackTrace();
+            }
+        }
+
+        // Reload the available files after restoring defaults
+        loadAvailableFiles();
+
+        // Register the new audio files with BaseMod
+        registerCustomAudio();
+
+        // Set the currentWarningIntroFilePath to a valid file
+        if (currentWarningIntroFilePath == null || currentWarningIntroFilePath.isEmpty()) {
+            if (!availableWarningIntroFiles.isEmpty()) {
+                currentWarningIntroFilePath = availableWarningIntroFiles.get(0);
+                savePreferences();
+            }
+        }
+
+        // Refresh the settings panel UI elements
+        updateDropdownMenu();
+    }
+    private void registerCustomAudio() {
+        for (String fileName : availableWarningIntroFiles) {
+            File file = new File(getCustomMusicFolderPath() + File.separator + fileName);
+            if (file.exists()) {
+                String fileKey = fileName.substring(0, fileName.length() - 4); // Remove ".ogg" from the name
+                BaseMod.addAudio(makeID(fileKey), file.getAbsolutePath());
+                System.out.println("Registered audio file: " + fileName);
             }
         }
     }
+    private void updateDropdownMenu() {
+        // Recreate the file options list
+        List<String> fileOptionsList = new ArrayList<>();
+
+        if (availableWarningIntroFiles.isEmpty()) {
+            fileOptionsList.add("No Valid Files Found");
+        } else {
+            fileOptionsList.add("Random Selection"); // Add the new option at the top
+
+            // Add truncated file names for the dropdown display
+            for (String fileName : availableWarningIntroFiles) {
+                fileOptionsList.add(truncateFileName(fileName)); // Use the truncated names
+            }
+        }
+
+        String[] fileOptions = fileOptionsList.toArray(new String[0]);
+
+        // Recreate the dropdown menu
+        fileDropdownMenu = new DropdownMenu(
+                (dropdownMenu, index, s) -> {
+                    if (isPlaying) {
+                        stopCurrentMusic(); // Stop the preview music if it's playing
+                        isTesting = false; // Reset the testing flag
+                    }
+                    setSelectedWarningIntroFile(index); // Set the selected file when an option is selected
+                },
+                fileOptions, // Array of file options
+                FontHelper.tipBodyFont, // Font for the dropdown
+                Settings.CREAM_COLOR // Text color
+        );
+
+        // Set the selected index based on currentWarningIntroFilePath
+        int savedIndex = 0; // Default to first option
+        if (currentWarningIntroFilePath != null && !currentWarningIntroFilePath.isEmpty()) {
+            if ("RANDOM_SELECTION".equals(currentWarningIntroFilePath)) {
+                savedIndex = 0; // Index for "Random Selection"
+            } else {
+                int index = availableWarningIntroFiles.indexOf(currentWarningIntroFilePath);
+                if (index != -1) {
+                    savedIndex = index + 1; // Adjust index since "Random Selection" is at index 0
+                }
+            }
+        }
+        fileDropdownMenu.setSelectedIndex(savedIndex);
+    }
+
 
     private static String getCurrentWarningIntroFileName() {
         if (availableWarningIntroFiles.isEmpty()) {
             return "No files available";
+        }
+        if ("RANDOM_SELECTION".equals(currentWarningIntroFilePath)) {
+            return "Random Selection";
         }
         return currentWarningIntroFilePath;
     }
@@ -283,8 +393,32 @@ public class ModFile implements
         loadAvailableFiles();
         loadPreferences();
         // Convert the list of files to an array for the dropdown
-        String[] fileOptions = availableWarningIntroFiles.toArray(new String[0]);
-        int savedIndex = Math.max(availableWarningIntroFiles.indexOf(new File(currentWarningIntroFilePath).getName()), 0);
+        List<String> fileOptionsList = new ArrayList<>();
+        if (availableWarningIntroFiles.isEmpty()) {
+            fileOptionsList.add("No Valid Files Found");
+            currentWarningIntroFilePath = null;
+        } else {
+            fileOptionsList.add("Random Selection"); // Add the new option at the top
+
+            // Add truncated file names for the dropdown display
+            for (String fileName : availableWarningIntroFiles) {
+                fileOptionsList.add(truncateFileName(fileName)); // Use the truncated names
+            }
+        }
+        String[] fileOptions = fileOptionsList.toArray(new String[0]);
+
+        int savedIndex = 0;
+
+        if (currentWarningIntroFilePath != null) {
+            if ("RANDOM_SELECTION".equals(currentWarningIntroFilePath)) {
+                savedIndex = 0; // Index for "Random Selection"
+            } else {
+                int index = availableWarningIntroFiles.indexOf(currentWarningIntroFilePath);
+                if (index != -1) {
+                    savedIndex = index + 1; // Adjust index since "Random Selection" is at index 0
+                }
+            }
+        }
         // Toggle for enabling/disabling low health music
         ModLabeledToggleButton lowHealthMusicToggle = new ModLabeledToggleButton(
                 "Enable Low Health Music",
@@ -300,7 +434,7 @@ public class ModFile implements
         settingsPanel.addUIElement(lowHealthMusicToggle);
 
         // Dropdown menu for file selection
-        DropdownMenu fileDropdownMenu = new DropdownMenu(
+        fileDropdownMenu = new DropdownMenu(
                 (dropdownMenu, index, s) -> {
                     if (isPlaying) {
                         stopCurrentMusic(); // Stop the preview music if it's playing
@@ -313,8 +447,9 @@ public class ModFile implements
                 Settings.CREAM_COLOR // Text color
         );
         fileDropdownMenu.setSelectedIndex(savedIndex);
+
         // Create an IUIElement wrapper for the dropdown
-        IUIElement dropdownWrapper = new IUIElement() {
+        dropdownWrapper = new IUIElement() {
             @Override
             public void render(SpriteBatch sb) {
                 // Render the dropdown at specific coordinates
@@ -337,9 +472,8 @@ public class ModFile implements
                 return 0;
             }
         };
-
-        // Add the dropdown wrapper to the settings panel
         settingsPanel.addUIElement(dropdownWrapper);
+
 
         // Label to show the current selected file
         ModLabel currentFileLabel = new ModLabel(
@@ -421,10 +555,19 @@ public class ModFile implements
 
 // Button for previewing the selected music file
         ModButton previewButton = new ModButton(
-                760.0f, // X position, adjust as needed
-                440f, // Y position, align with dropdown
+                760.0f, // X position
+                440f,    // Y position
                 settingsPanel,
                 (button) -> {
+                    if (availableWarningIntroFiles.isEmpty() || currentWarningIntroFilePath == null || currentWarningIntroFilePath.isEmpty()) {
+                        // No valid files available
+                        System.out.println("No valid files found to preview.");
+                        if (playingLabel != null) {
+                            playingLabel.text = "No valid files found."; // Show the message
+                        }
+                        return;
+                    }
+
                     if (isTesting || isPlaying) {
                         // If it's testing and music is playing, stop it
                         isTesting = false;
@@ -436,8 +579,52 @@ public class ModFile implements
                         CardCrawlGame.music.unsilenceBGM(); // Resume the normal background music
                     } else {
                         // If not testing, start playing the preview music
-                        String selectedWarningIntro = getCurrentWarningIntroFileName();
+                        String selectedWarningIntro;
+                        if ("RANDOM_SELECTION".equals(currentWarningIntroFilePath)) {
+                            // Handle random selection
+                            if (availableWarningIntroFiles.isEmpty()) {
+                                // No files available
+                                System.out.println("No valid files found to preview.");
+                                if (playingLabel != null) {
+                                    playingLabel.text = "No valid files found."; // Show the message
+                                }
+                                return;
+                            }
+
+                            String randomTrack;
+                            if (availableWarningIntroFiles.size() == 1) {
+                                randomTrack = availableWarningIntroFiles.get(0);
+                            } else {
+                                do {
+                                    int randomIndex = MathUtils.random(availableWarningIntroFiles.size() - 1);
+                                    randomTrack = availableWarningIntroFiles.get(randomIndex);
+                                } while (randomTrack.equals(lastPlayedTrack));
+                            }
+                            selectedWarningIntro = randomTrack;
+                            lastPlayedTrack = selectedWarningIntro;
+                            System.out.println("Randomly selected file for preview: " + selectedWarningIntro);
+                        } else {
+                            selectedWarningIntro = getCurrentWarningIntroFileName();
+                            if (selectedWarningIntro == null || selectedWarningIntro.isEmpty()) {
+                                System.out.println("No valid files found to preview.");
+                                if (playingLabel != null) {
+                                    playingLabel.text = "No valid files found."; // Show the message
+                                }
+                                return;
+                            }
+                        }
+
                         String fullPath = getCustomMusicFolderPath() + File.separator + selectedWarningIntro;
+                        File file = new File(fullPath);
+
+                        if (!file.exists()) {
+                            System.out.println("Selected file does not exist: " + fullPath);
+                            if (playingLabel != null) {
+                                playingLabel.text = "Selected file does not exist."; // Show the message
+                            }
+                            return;
+                        }
+
                         System.out.println("Attempting to play: " + fullPath);
                         isTesting = true;  // Set testing mode to true
                         CardCrawlGame.music.silenceBGMInstantly(); // Silence the normal background music
@@ -450,9 +637,7 @@ public class ModFile implements
                     }
                 }
         );
-
         settingsPanel.addUIElement(previewButton);
-
 
         playingLabel = new ModLabel(
                 "", // Initially empty
@@ -502,10 +687,95 @@ public class ModFile implements
 
         lowHealthSlider.setValue(getLowHealthThreshold() * 100.0F);  // Set slider value to current threshold
         settingsPanel.addUIElement(lowHealthSlider);
+// Restore Default Tracks Button
+        ModButton restoreDefaultsButton = new ModButton(
+                1100f, // X position
+                620.0f, // Y position
+                settingsPanel,
+                (button) -> {
+                    restoreDefaultTracks();
+                }
+        );
+        settingsPanel.addUIElement(restoreDefaultsButton);
+
+// Label for the Restore Defaults Button
+        ModLabel restoreDefaultsLabel = new ModLabel(
+                "Restore Default Tracks", // Text
+                1224.314f, // X position
+                675.0f, // Y position
+                Settings.CREAM_COLOR, // Text color
+                FontHelper.charDescFont, // Font
+                settingsPanel,
+                (label) -> {
+                }
+        );
+        settingsPanel.addUIElement(restoreDefaultsLabel);
+
+        // Refresh Files Button
+        ModButton refreshFilesButton = new ModButton(
+                1100f, // X position
+                540.0f, // Y position
+                settingsPanel,
+                (button) -> {
+                    refreshAvailableFiles();
+                }
+        );
+        settingsPanel.addUIElement(refreshFilesButton);
+
+// Label for the Refresh Files Button
+        ModLabel refreshFilesLabel = new ModLabel(
+                "Refresh Files", // Text
+                1224.314f, // X position
+                595.0f, // Y position
+                Settings.CREAM_COLOR, // Text color
+                FontHelper.charDescFont, // Font
+                settingsPanel,
+                (label) -> {
+                }
+        );
+        settingsPanel.addUIElement(refreshFilesLabel);
+
+        ModLabeledToggleButton loopingToggleButton = new ModLabeledToggleButton(
+                "Looping", // Text next to the checkbox
+                1150.0f,    // X position
+                720f,    // Y position
+                Settings.CREAM_COLOR, // Text color
+                FontHelper.charDescFont, // Font
+                isMusicLooping, // Initial value from preferences
+                settingsPanel, // Parent panel
+                (label) -> {}, // Label updater
+                (button) -> {
+                    // Update the looping setting when the checkbox is clicked
+                    isMusicLooping = button.enabled;
+                    savePreferences(); // Save the new setting
+                    System.out.println("Looping setting changed to: " + isMusicLooping);
+                }
+        );
+
+        settingsPanel.addUIElement(loopingToggleButton);
+
 
         Texture badgeTexture = new Texture(Gdx.files.internal("customlowhealthmusicResources/images/ui/badge.png"));
         BaseMod.registerModBadge(badgeTexture, "Custom Low Health Music", "Ninja Puppy", "Custom music for low health situations.", settingsPanel);
     }
+    private void refreshAvailableFiles() {
+        // Reload the available files
+        loadAvailableFiles();
+
+        // Register the new audio files with BaseMod
+        registerCustomAudio();
+
+        // Refresh the dropdown menu
+        updateDropdownMenu();
+    }
+    private String truncateFileName(String fileName) {
+        if (fileName.length() > 28) {
+            return fileName.substring(0, 25) + "...";
+        } else {
+            return fileName;
+        }
+    }
+
     private void openFileExplorer(String folderPath) {
         if (Desktop.isDesktopSupported()) {
             try {
@@ -525,16 +795,23 @@ public class ModFile implements
     }
     // Method to update the selected warning intro file
     private void setSelectedWarningIntroFile(int selectedIndex) {
-        if (selectedIndex >= 0 && selectedIndex < availableWarningIntroFiles.size()) {
-            currentWarningIntroFilePath = availableWarningIntroFiles.get(selectedIndex);
+        if (availableWarningIntroFiles.isEmpty()) {
+            // Do not change currentWarningIntroFilePath if there are no files
+            return;
+        }
+
+        if (selectedIndex >= 0) {
+            if (selectedIndex == 0) {
+                // "Random Selection" is selected
+                currentWarningIntroFilePath = "RANDOM_SELECTION";
+            } else if (selectedIndex - 1 < availableWarningIntroFiles.size()) {
+                currentWarningIntroFilePath = availableWarningIntroFiles.get(selectedIndex - 1); // Use full file name
+            }
 
             // Log the file path being saved
             System.out.println("Saving selected file: " + currentWarningIntroFilePath);
 
             // Save the selected file to preferences
-            Preferences prefs = Gdx.app.getPreferences(PREFS_NAME);
-            prefs.putString(SELECTED_FILE_KEY, currentWarningIntroFilePath);
-
             savePreferences();
 
             // Stop the current music and reset the label when a new file is selected
@@ -575,7 +852,6 @@ public class ModFile implements
             checkPlayerHealth();
         }
     }
-
     @Override
     public void receivePostUpdate() {
         // Check if the player is on the Death Screen to avoid stopping music prematurely
@@ -584,11 +860,10 @@ public class ModFile implements
                 stopHealthWarningMusic();  // Stop health music only if not on the death screen
                 CardCrawlGame.music.silenceTempBgmInstantly();  // Silence background music, but not on death screen
             }
-        }else if (AbstractDungeon.screen == AbstractDungeon.CurrentScreen.DEATH) {
-        isDead = true;
+        } else if (AbstractDungeon.screen == AbstractDungeon.CurrentScreen.DEATH) {
+            isDead = true;
             stopHealthWarningMusic();
-        }
-        else if (AbstractDungeon.currMapNode != null && AbstractDungeon.actionManager != null && isPlaying) {
+        } else if (AbstractDungeon.currMapNode != null && AbstractDungeon.actionManager != null && isPlaying) {
             // Ensure that music only plays in combat rooms and not during transitions
             if (AbstractDungeon.getCurrRoom() == null || !AbstractDungeon.getCurrRoom().phase.equals(AbstractRoom.RoomPhase.COMBAT)) {
                 stopHealthWarningMusic();  // Stop music if not in combat
@@ -609,7 +884,6 @@ public class ModFile implements
             currentlyPlayingMusic.setVolume(adjustedVolume);
         }
     }
-
 
     private void resetMusicStates() {
         isPlaying = false;
@@ -715,16 +989,48 @@ public class ModFile implements
         if (!lowHealthMusicEnabled || isSpecialTempTrackPlaying() || isBossStingerPlaying || bossBattleEnded) {
             return; // Exit if low health music is disabled or any special conditions are met
         }
-            System.out.println("PlayWarningMusicMain");
-            CardCrawlGame.music.silenceTempBgmInstantly();
-            CardCrawlGame.music.silenceBGM();
-            String selectedWarningIntro = getCurrentWarningIntroFileName(); // Fetch the current file name
-            String fullPath = getCustomMusicFolderPath() + File.separator + selectedWarningIntro; // Get the full path
-            System.out.println("Playing selected file: " + fullPath);
-            ModFile.playTempBgm(fullPath); // Play the music using the full path
-            ModFile.isPlaying = true;
+        if (availableWarningIntroFiles.isEmpty()) {
+            System.out.println("No valid files found to play for low health warning.");
+            return;
+        }
+        // Silence the game's background music and any temporary background music
+        CardCrawlGame.music.silenceBGMInstantly(); // Silence the normal background music
+        CardCrawlGame.music.silenceTempBgmInstantly(); // Silence any temporary background music
+        // Proceed to play the low health music using playTempBgm()
+        String selectedWarningIntro;
+        if ("RANDOM_SELECTION".equals(currentWarningIntroFilePath)) {
+            // Handle random selection
+            String randomTrack;
+            if (availableWarningIntroFiles.size() == 1) {
+                randomTrack = availableWarningIntroFiles.get(0);
+            } else {
+                do {
+                    int randomIndex = MathUtils.random(availableWarningIntroFiles.size() - 1);
+                    randomTrack = availableWarningIntroFiles.get(randomIndex);
+                } while (randomTrack.equals(lastPlayedTrack));
+            }
+            selectedWarningIntro = randomTrack;
+            lastPlayedTrack = selectedWarningIntro;
+            System.out.println("Randomly selected file: " + selectedWarningIntro);
+        } else {
+            selectedWarningIntro = getCurrentWarningIntroFileName();
+            if (selectedWarningIntro == null || selectedWarningIntro.isEmpty()) {
+                System.out.println("No valid files found to play.");
+                return;
+            }
         }
 
+        String fullPath = getCustomMusicFolderPath() + File.separator + selectedWarningIntro;
+        File file = new File(fullPath);
+        if (!file.exists()) {
+            System.out.println("Selected music file does not exist: " + fullPath);
+            return;
+        }
+
+        System.out.println("Playing selected file: " + fullPath);
+        playTempBgm(fullPath); // Play the music using the full path
+        isPlaying = true;
+    }
 
     public static void stopHealthWarningMusic() {
         if (isBossStingerPlaying) {
