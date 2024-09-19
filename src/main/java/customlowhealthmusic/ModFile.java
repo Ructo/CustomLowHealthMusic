@@ -205,9 +205,8 @@ public class ModFile implements
                     public void onCompletion(Music music) {
                         System.out.println("Music playback completed.");
                         // Set flags to indicate music has stopped
-                        isPlaying = false;
                         currentlyPlayingMusic = null;
-                        // No need to call stopCurrentMusic() since the music has already finished playing
+                        stopHealthWarningMusic();
                     }
                 });
             }
@@ -453,7 +452,9 @@ public class ModFile implements
             @Override
             public void render(SpriteBatch sb) {
                 // Render the dropdown at specific coordinates
-                fileDropdownMenu.render(sb, 386.686f * Settings.xScale, 515f * Settings.yScale);
+                fileDropdownMenu.render(sb,
+                        565.686f * Settings.xScale,
+                        518f * Settings.yScale);
             }
 
             @Override
@@ -478,8 +479,8 @@ public class ModFile implements
         // Label to show the current selected file
         ModLabel currentFileLabel = new ModLabel(
                 "Current File:",
-                500f,
-                550f,
+                386.686f,
+                492.5f,
                 Settings.CREAM_COLOR,
                 FontHelper.charDescFont,
                 settingsPanel,
@@ -488,13 +489,13 @@ public class ModFile implements
         );
         settingsPanel.addUIElement(currentFileLabel);
 
-        String explanationText = "To add new files, they must be .ogg files and they need to be added to the following location:\n" + getCustomMusicFolderPath();
+        String explanationText = "To add new files, they must be .ogg files.";
 
         // Label to display the explanation
         ModLabel explanationLabel = new ModLabel(
                 explanationText,
-                400f,
-                380f,
+                386.686f,
+                555f,
                 Settings.CREAM_COLOR,
                 FontHelper.charDescFont,
                 settingsPanel,
@@ -531,8 +532,8 @@ public class ModFile implements
         settingsPanel.addUIElement(volumeSlider);
 
         ModButton openFolderButton = new ModButton(
-                386.686f, // X position
-                220.0f, // Y position
+                1100f, // X position
+                440f, // Y position
                 settingsPanel,
                 (button) -> {
                     openFileExplorer(getCustomMusicFolderPath());
@@ -543,8 +544,8 @@ public class ModFile implements
 // Create the label next to the button
         ModLabel folderButtonLabel = new ModLabel(
                 "Open Custom Music Folder", // Text
-                511.0f, // X position, adjust as needed to be right of the button
-                275.0f, // Y position, slightly higher to align with button
+                1224.314f, // X position, adjust as needed to be right of the button
+                495f, // Y position, slightly higher to align with button
                 Settings.CREAM_COLOR, // Text color
                 FontHelper.charDescFont, // Font
                 settingsPanel,
@@ -555,8 +556,8 @@ public class ModFile implements
 
 // Button for previewing the selected music file
         ModButton previewButton = new ModButton(
-                760.0f, // X position
-                440f,    // Y position
+                940.0f, // X position
+                440.0f,    // Y position
                 settingsPanel,
                 (button) -> {
                     if (availableWarningIntroFiles.isEmpty() || currentWarningIntroFilePath == null || currentWarningIntroFilePath.isEmpty()) {
@@ -641,8 +642,8 @@ public class ModFile implements
 
         playingLabel = new ModLabel(
                 "", // Initially empty
-                890.0f, // X position, adjust as needed to be right of the button
-                490.0f, // Y position, slightly higher to align with button
+                955.0f, // X position, adjust as needed to be right of the button
+                435.0f, // Y position, slightly higher to align with button
                 Settings.CREAM_COLOR, // Text color
                 FontHelper.charDescFont, // Font
                 settingsPanel,
@@ -659,8 +660,8 @@ public class ModFile implements
 // Label to show "Preview" next to the button
         ModLabel previewButtonLabel = new ModLabel(
                 "Preview", // Text
-                777.0f, // X position, adjust as needed to be right of the button
-                550.0f, // Y position, slightly higher to align with button
+                955f, // X position, adjust as needed to be right of the button
+                555.0f, // Y position, slightly higher to align with button
                 Settings.CREAM_COLOR, // Text color
                 FontHelper.charDescFont, // Font
                 settingsPanel,
@@ -714,7 +715,7 @@ public class ModFile implements
         // Refresh Files Button
         ModButton refreshFilesButton = new ModButton(
                 1100f, // X position
-                540.0f, // Y position
+                530.0f, // Y position
                 settingsPanel,
                 (button) -> {
                     refreshAvailableFiles();
@@ -726,7 +727,7 @@ public class ModFile implements
         ModLabel refreshFilesLabel = new ModLabel(
                 "Refresh Files", // Text
                 1224.314f, // X position
-                595.0f, // Y position
+                585.0f, // Y position
                 Settings.CREAM_COLOR, // Text color
                 FontHelper.charDescFont, // Font
                 settingsPanel,
@@ -737,8 +738,8 @@ public class ModFile implements
 
         ModLabeledToggleButton loopingToggleButton = new ModLabeledToggleButton(
                 "Looping", // Text next to the checkbox
-                1150.0f,    // X position
-                720f,    // Y position
+                386.686f,    // X position
+                430.0f,    // Y position
                 Settings.CREAM_COLOR, // Text color
                 FontHelper.charDescFont, // Font
                 isMusicLooping, // Initial value from preferences
