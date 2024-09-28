@@ -1,46 +1,46 @@
 package customlowhealthmusic.patch;
 
 import com.evacipated.cardcrawl.modthespire.lib.SpirePatch;
-import customlowhealthmusic.ModFile;
-import com.evacipated.cardcrawl.modthespire.lib.SpireInstrumentPatch;
+import com.evacipated.cardcrawl.modthespire.lib.SpireReturn;
+import com.evacipated.cardcrawl.modthespire.lib.SpirePrefixPatch;
+import com.megacrit.cardcrawl.actions.common.ApplyPowerAction;
+import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.monsters.ending.CorruptHeart;
-import javassist.expr.ExprEditor;
-import javassist.expr.MethodCall;
-import javassist.CannotCompileException;
+import com.megacrit.cardcrawl.powers.BeatOfDeathPower;
+import com.megacrit.cardcrawl.powers.InvinciblePower;
+import com.megacrit.cardcrawl.core.CardCrawlGame;
+import customlowhealthmusic.ModFile;
 
 @SpirePatch(
         clz = CorruptHeart.class,
         method = "usePreBattleAction"
 )
 public class CorruptHeartPatch {
-    @SpireInstrumentPatch
-    public static ExprEditor Instrument() {
-        return new ExprEditor() {
-            boolean insertedCheck = false;
-            @Override
-            public void edit(MethodCall m) throws CannotCompileException {
-                if (!insertedCheck) {
-                    // Insert ModFile.checkPlayerHealth() at the very beginning
-                    m.replace("{" +
-                            ModFile.class.getName() + ".checkPlayerHealth();" +
-                            "$_ = $proceed($$);" +
-                            "}");
-                    insertedCheck = true;
-                    return;
-                }
-                // Target the unsilenceBGM method
-                if (m.getClassName().equals("com.megacrit.cardcrawl.audio.MainMusic") && m.getMethodName().equals("unsilenceBGM")) {
-                    m.replace("{ if (!" + ModFile.class.getName() + ".isPlaying) { $_ = $proceed($$); } }");
-                }
-                // Target the fadeOutAmbiance method
-                else if (m.getClassName().equals("com.megacrit.cardcrawl.scenes.AbstractScene") && m.getMethodName().equals("fadeOutAmbiance")) {
-                    m.replace("{ if (!" + ModFile.class.getName() + ".isPlaying) { $_ = $proceed($$); } }");
-                }
-                // Target the playBgmInstantly method
-                else if (m.getClassName().equals("com.megacrit.cardcrawl.rooms.AbstractRoom") && m.getMethodName().equals("playBgmInstantly")) {
-                    m.replace("{ if (!" + ModFile.class.getName() + ".isPlaying) { $_ = $proceed($$); } }");
-                }
-            }
-        };
+
+    @SpirePrefixPatch
+    public static SpireReturn<Void> Prefix(CorruptHeart __instance) {
+        // Replace the original music and unsilence logic
+        CardCrawlGame.music.precacheTempBgm("BOSS_ENDING");
+
+        // Check for player's low health and handle low health music if necessary
+        ModFile.checkPlayerHealth();
+
+        // Replicate the rest of the original method logic
+        int invincibleAmt = 300;
+        if (AbstractDungeon.ascensionLevel >= 19) {
+            invincibleAmt -= 100;
+        }
+
+        int beatAmount = 1;
+        if (AbstractDungeon.ascensionLevel >= 19) {
+            ++beatAmount;
+        }
+
+        // Apply powers as in the original method
+        AbstractDungeon.actionManager.addToBottom(new ApplyPowerAction(__instance, __instance, new InvinciblePower(__instance, invincibleAmt), invincibleAmt));
+        AbstractDungeon.actionManager.addToBottom(new ApplyPowerAction(__instance, __instance, new BeatOfDeathPower(__instance, beatAmount), beatAmount));
+
+        // Return early to prevent the original method from running
+        return SpireReturn.Return();
     }
 }

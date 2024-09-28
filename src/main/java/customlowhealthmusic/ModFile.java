@@ -855,7 +855,20 @@ public class ModFile implements
     }
     @Override
     public void receivePostUpdate() {
-        // Check if the player is on the Death Screen to avoid stopping music prematurely
+        // If the game is backgrounded and MUTE_IF_BG is enabled, set volume to 0
+        if (CardCrawlGame.MUTE_IF_BG && Settings.isBackgrounded) {
+            if (currentlyPlayingMusic != null) {
+                currentlyPlayingMusic.setVolume(0.0f);  // Silence music when backgrounded
+            }
+            return;  // Exit early, no need to do anything else
+        }
+
+        // If the game is in the foreground, apply the volume multiplier
+        if (currentlyPlayingMusic != null && !Settings.isBackgrounded) {
+            float adjustedVolume = getVolumeMultiplier();  // Only use the custom mod multiplier
+            currentlyPlayingMusic.setVolume(adjustedVolume);  // Adjust volume based on mod settings
+        }
+            // Check if the player is on the Death Screen to avoid stopping music prematurely
         if (!CardCrawlGame.isInARun() && AbstractDungeon.screen != AbstractDungeon.CurrentScreen.DEATH) {
             if (!isTesting && !BaseMod.modSettingsUp){
                 stopHealthWarningMusic();  // Stop health music only if not on the death screen
@@ -1143,6 +1156,7 @@ public class ModFile implements
                         CardCrawlGame.music.playTempBgmInstantly("STS_EliteBoss_NewMix_v1.ogg");
                     } else {
                         // Handle non-boss, non-elite rooms
+                        System.out.println("Non-boss or Elite room stop.");
                         stopCurrentMusic(); // Stop the current health warning music
                         CardCrawlGame.music.silenceTempBgmInstantly();
                         CardCrawlGame.music.unsilenceBGM();
