@@ -1,0 +1,22 @@
+{
+  "customlowhealthmusic:EnableLowHealthMusic": {
+    "TEXT": [
+      "Aktifkan Musik Kesehatan Rendah",
+      "Pengganda Volume (x0.0 - x2.0)",
+      "Pratinjau",
+      "Berkas Saat Ini:",
+      "Untuk menambahkan berkas baru, berkas tersebut harus berformat .ogg.",
+      "Pilihan Acak",
+      "Buka Folder Musik Khusus",
+      "Tidak ada berkas yang valid ditemukan.",
+      "Berkas yang dipilih tidak ada.",
+      "Memutar...",
+      "Persentase Kesehatan dari Pemicu HP Maksimal",
+      "Kembalikan Trek Default",
+      "Segarkan Berkas",
+      "Pengulangan",
+      "Musik Khusus untuk Kesehatan Rendah",
+      "Musik khusus untuk situasi kesehatan rendah."
+    ]
+  }
+}

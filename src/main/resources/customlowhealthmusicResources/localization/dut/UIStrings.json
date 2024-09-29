@@ -1,0 +1,22 @@
+{
+  "customlowhealthmusic:EnableLowHealthMusic": {
+    "TEXT": [
+      "Lage Gezondheidsmuziek inschakelen",
+      "Volumevermenigvuldiger (x0.0 - x2.0)",
+      "Voorbeeld",
+      "Huidig Bestand:",
+      "Om nieuwe bestanden toe te voegen, moeten ze .ogg-bestanden zijn.",
+      "Willekeurige Selectie",
+      "Open Aangepaste Muziekmap",
+      "Geen geldige bestanden gevonden.",
+      "Geselecteerd bestand bestaat niet.",
+      "Afspelen...",
+      "Gezondheid % van Max HP Trigger",
+      "Herstel Standaard Tracks",
+      "Bestanden vernieuwen",
+      "Herhalen",
+      "Aangepaste Muziek voor Lage Gezondheid",
+      "Aangepaste muziek voor situaties met lage gezondheid."
+    ]
+  }
+}

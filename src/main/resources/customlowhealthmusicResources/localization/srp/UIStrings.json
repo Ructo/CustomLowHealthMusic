@@ -1,0 +1,22 @@
+{
+  "customlowhealthmusic:EnableLowHealthMusic": {
+    "TEXT": [
+      "Omogući muziku za nizak nivo zdravlja",
+      "Multiplikator jačine zvuka (x0.0 - x2.0)",
+      "Pregled",
+      "Trenutna datoteka:",
+      "Da biste dodali nove datoteke, one moraju biti u .ogg formatu.",
+      "Slučajni izbor",
+      "Otvori fasciklu sa prilagođenom muzikom",
+      "Nije pronađena nijedna važeća datoteka.",
+      "Izabrana datoteka ne postoji.",
+      "Reprodukcija...",
+      "Procenat zdravlja za aktiviranje od maks. HP",
+      "Vrati podrazumevane numere",
+      "Osveži datoteke",
+      "Ponavljanje",
+      "Prilagođena muzika za nizak nivo zdravlja",
+      "Prilagođena muzika za situacije sa niskim nivoom zdravlja."
+    ]
+  }
+}

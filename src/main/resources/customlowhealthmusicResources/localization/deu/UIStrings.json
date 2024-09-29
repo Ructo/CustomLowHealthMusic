@@ -1,0 +1,22 @@
+{
+  "customlowhealthmusic:EnableLowHealthMusic": {
+    "TEXT": [
+      "Niedrige Gesundheitsmusik aktivieren",
+      "Lautstärke-Multiplikator (x0,0 - x2,0)",
+      "Vorschau",
+      "Aktuelle Datei:",
+      "Um neue Dateien hinzuzufügen, müssen es .ogg-Dateien sein.",
+      "Zufällige Auswahl",
+      "Öffne Ordner für benutzerdefinierte Musik",
+      "Keine gültigen Dateien gefunden.",
+      "Ausgewählte Datei existiert nicht.",
+      "Wird abgespielt...",
+      "Gesundheits-% von maximalem HP-Trigger",
+      "Standard-Tracks wiederherstellen",
+      "Dateien aktualisieren",
+      "Schleife",
+      "Benutzerdefinierte Musik für niedrige Gesundheit",
+      "Benutzerdefinierte Musik für Situationen mit niedriger Gesundheit."
+    ]
+  }
+}

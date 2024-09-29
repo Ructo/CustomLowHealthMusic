@@ -1,0 +1,22 @@
+{
+  "customlowhealthmusic:EnableLowHealthMusic": {
+    "TEXT": [
+      "Düşük Sağlık Müziğini Etkinleştir",
+      "Ses Seviyesi Çarpanı (x0.0 - x2.0)",
+      "Önizleme",
+      "Geçerli Dosya:",
+      "Yeni dosyalar eklemek için, .ogg dosyaları olmalıdır.",
+      "Rastgele Seçim",
+      "Özel Müzik Klasörünü Aç",
+      "Geçerli dosya bulunamadı.",
+      "Seçilen dosya mevcut değil.",
+      "Çalıyor...",
+      "Maksimum HP'nin Sağlık % Tetikleyicisi",
+      "Varsayılan Parçaları Geri Yükle",
+      "Dosyaları Yenile",
+      "Döngü",
+      "Düşük Sağlık İçin Özel Müzik",
+      "Düşük sağlık durumları için özel müzik."
+    ]
+  }
+}

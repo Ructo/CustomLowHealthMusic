@@ -1,0 +1,22 @@
+{
+  "customlowhealthmusic:EnableLowHealthMusic": {
+    "TEXT": [
+      "Bật Nhạc Khi Máu Thấp",
+      "Bội Số Âm Lượng (x0.0 - x2.0)",
+      "Xem Trước",
+      "Tệp Hiện Tại:",
+      "Để thêm tệp mới, chúng phải ở định dạng .ogg.",
+      "Lựa Chọn Ngẫu Nhiên",
+      "Mở Thư Mục Nhạc Tùy Chỉnh",
+      "Không tìm thấy tệp hợp lệ.",
+      "Tệp đã chọn không tồn tại.",
+      "Đang Phát...",
+      "Phần Trăm Máu Kích Hoạt HP Tối Đa",
+      "Khôi Phục Bài Hát Mặc Định",
+      "Làm Mới Tệp",
+      "Lặp Lại",
+      "Nhạc Tùy Chỉnh Khi Máu Thấp",
+      "Nhạc tùy chỉnh cho các tình huống máu thấp."
+    ]
+  }
+}

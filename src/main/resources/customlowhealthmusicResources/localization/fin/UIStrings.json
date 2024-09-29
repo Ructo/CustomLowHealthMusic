@@ -1,0 +1,22 @@
+{
+  "customlowhealthmusic:EnableLowHealthMusic": {
+    "TEXT": [
+      "Ota käyttöön matalan terveyden musiikki",
+      "Äänenvoimakkuuden kerroin (x0.0 - x2.0)",
+      "Esikatselu",
+      "Nykyinen tiedosto:",
+      "Lisätäksesi uusia tiedostoja, niiden on oltava .ogg-tiedostoja.",
+      "Satunnainen valinta",
+      "Avaa mukautetun musiikin kansio",
+      "Ei kelvollisia tiedostoja löytynyt.",
+      "Valittua tiedostoa ei ole olemassa.",
+      "Toistaa...",
+      "Terveys % maksimi HP:n laukaisu",
+      "Palauta oletusraidat",
+      "Päivitä tiedostot",
+      "Toisto",
+      "Mukautettu matalan terveyden musiikki",
+      "Mukautettu musiikki tilanteisiin, joissa terveys on matala."
+    ]
+  }
+}

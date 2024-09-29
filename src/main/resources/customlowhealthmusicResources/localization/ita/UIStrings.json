@@ -1,0 +1,22 @@
+{
+  "customlowhealthmusic:EnableLowHealthMusic": {
+    "TEXT": [
+      "Abilita musica per bassa salute",
+      "Moltiplicatore volume (x0.0 - x2.0)",
+      "Anteprima",
+      "File corrente:",
+      "Per aggiungere nuovi file, devono essere in formato .ogg.",
+      "Selezione casuale",
+      "Apri cartella musica personalizzata",
+      "Nessun file valido trovato.",
+      "Il file selezionato non esiste.",
+      "Riproducendo...",
+      "% di salute del trigger rispetto a HP massimo",
+      "Ripristina tracce predefinite",
+      "Aggiorna file",
+      "Ripetizione",
+      "Musica personalizzata per bassa salute",
+      "Musica personalizzata per situazioni di bassa salute."
+    ]
+  }
+}

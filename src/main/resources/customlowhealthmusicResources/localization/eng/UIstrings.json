@@ -1,3 +1,22 @@
 {
-    
+  "customlowhealthmusic:EnableLowHealthMusic": {
+    "TEXT": [
+      "Enable Low Health Music",
+      "Volume Multiplier (x0.0 - x2.0)",
+      "Preview",
+      "Current File:",
+      "To add new files, they must be .ogg files.",
+      "Random Selection",
+      "Open Custom Music Folder",
+      "No valid files found.",
+      "Selected file does not exist.",
+      "Playing...",
+      "Health % of Max HP Trigger",
+      "Restore Default Tracks",
+      "Refresh Files",
+      "Looping",
+      "Custom Low Health Music",
+      "Custom music for low health situations."
+    ]
+  }
 }

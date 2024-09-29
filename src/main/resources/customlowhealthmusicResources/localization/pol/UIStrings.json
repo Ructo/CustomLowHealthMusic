@@ -1,0 +1,22 @@
+{
+  "customlowhealthmusic:EnableLowHealthMusic": {
+    "TEXT": [
+      "Włącz muzykę niskiego zdrowia",
+      "Mnożnik głośności (x0.0 - x2.0)",
+      "Podgląd",
+      "Aktualny plik:",
+      "Aby dodać nowe pliki, muszą być w formacie .ogg.",
+      "Losowy wybór",
+      "Otwórz folder z niestandardową muzyką",
+      "Nie znaleziono żadnych prawidłowych plików.",
+      "Wybrany plik nie istnieje.",
+      "Odtwarzanie...",
+      "Procent zdrowia względem maksymalnego HP",
+      "Przywróć domyślne ścieżki",
+      "Odśwież pliki",
+      "Zapętlenie",
+      "Niestandardowa muzyka niskiego zdrowia",
+      "Niestandardowa muzyka dla sytuacji z niskim poziomem zdrowia."
+    ]
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "customlowhealthmusic:EnableLowHealthMusic": {
+    "TEXT": [
+      "Ativar Música para Baixa Saúde",
+      "Multiplicador de Volume (x0.0 - x2.0)",
+      "Prévia",
+      "Arquivo Atual:",
+      "Para adicionar novos arquivos, eles devem ser .ogg.",
+      "Seleção Aleatória",
+      "Abrir Pasta de Música Personalizada",
+      "Nenhum arquivo válido encontrado.",
+      "O arquivo selecionado não existe.",
+      "Reproduzindo...",
+      "Percentual de Saúde do HP Máximo para Gatilho",
+      "Restaurar Trilhas Padrão",
+      "Atualizar Arquivos",
+      "Repetir",
+      "Música Personalizada para Baixa Saúde",
+      "Música personalizada para situações de baixa saúde."
+    ]
+  }
+}

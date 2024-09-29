@@ -1,0 +1,22 @@
+{
+  "customlowhealthmusic:EnableLowHealthMusic": {
+    "TEXT": [
+      "Activer la musique pour faible santé",
+      "Multiplicateur de volume (x0.0 - x2.0)",
+      "Aperçu",
+      "Fichier actuel :",
+      "Pour ajouter de nouveaux fichiers, ils doivent être en .ogg.",
+      "Sélection aléatoire",
+      "Ouvrir le dossier de musique personnalisée",
+      "Aucun fichier valide trouvé.",
+      "Le fichier sélectionné n'existe pas.",
+      "Lecture...",
+      "% de santé de HP max pour déclenchement",
+      "Restaurer les pistes par défaut",
+      "Rafraîchir les fichiers",
+      "Boucle",
+      "Musique personnalisée pour faible santé",
+      "Musique personnalisée pour les situations de faible santé."
+    ]
+  }
+}

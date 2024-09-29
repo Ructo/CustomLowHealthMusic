@@ -20,6 +20,9 @@ import com.megacrit.cardcrawl.events.beyond.MindBloom;
 import com.megacrit.cardcrawl.helpers.FontHelper;
 import com.megacrit.cardcrawl.helpers.ImageMaster;
 import com.megacrit.cardcrawl.helpers.input.InputHelper;
+import com.megacrit.cardcrawl.localization.CardStrings;
+import com.megacrit.cardcrawl.localization.PowerStrings;
+import com.megacrit.cardcrawl.localization.UIStrings;
 import com.megacrit.cardcrawl.monsters.AbstractMonster;
 import com.megacrit.cardcrawl.monsters.exordium.Lagavulin;
 import com.megacrit.cardcrawl.rooms.*;
@@ -64,6 +67,7 @@ public class ModFile implements
     public static boolean isPlaying = false;
     public static boolean isTesting = false;
     public static boolean isDead = false;
+    public static boolean isLoaded = false;
     private static boolean isMusicLooping = true;
      public static boolean isBossStingerPlaying = false;  // Flag for boss stinger
     public static boolean bossBattleEnded = false;       // Prevent health checks after boss defeat
@@ -81,6 +85,8 @@ public class ModFile implements
     private static String lastPlayedTrack = null;
     private DropdownMenu fileDropdownMenu;
     private IUIElement dropdownWrapper;
+    private static UIStrings uiStrings;
+    private static String[] TEXT;
 
     private static final String[] SPECIAL_TEMP_TRACKS = {
             "CREDITS"
@@ -154,9 +160,92 @@ public class ModFile implements
     }
     @Override
     public void receiveEditStrings() {
-        // Localization loading...
+        // Always checking for "UIStrings.json"
+        String locPath = makeLocPath("UIStrings");
+        System.out.println("Loading localization file: " + locPath); // Debugging statement
+        BaseMod.loadCustomStringsFile(UIStrings.class, locPath);
     }
+    private static String makeLocPath(String filename) {
+        String basePath = "customlowhealthmusicResources/localization/";
+        String langPath;
 
+        switch (Settings.language) {
+            case RUS:
+                langPath = basePath + "rus/" + filename + ".json";
+                break;
+            case ZHS:
+                langPath = basePath + "zhs/" + filename + ".json";
+                break;
+            case ZHT:
+                langPath = basePath + "zht/" + filename + ".json";
+                break;
+            case SPA:
+                langPath = basePath + "spa/" + filename + ".json";
+                break;
+            case SRB:
+                langPath = basePath + "srb/" + filename + ".json";
+                break;
+            case SRP:
+                langPath = basePath + "srp/" + filename + ".json";
+                break;
+            case DEU:
+                langPath = basePath + "deu/" + filename + ".json";
+                break;
+            case DUT:
+                langPath = basePath + "dut/" + filename + ".json";
+                break;
+            case EPO:
+                langPath = basePath + "epo/" + filename + ".json";
+                break;
+            case FIN:
+                langPath = basePath + "fin/" + filename + ".json";
+                break;
+            case FRA:
+                langPath = basePath + "fra/" + filename + ".json";
+                break;
+            case GRE:
+                langPath = basePath + "gre/" + filename + ".json";
+                break;
+            case IND:
+                langPath = basePath + "ind/" + filename + ".json";
+                break;
+            case ITA:
+                langPath = basePath + "ita/" + filename + ".json";
+                break;
+            case JPN:
+                langPath = basePath + "jpn/" + filename + ".json";
+                break;
+            case KOR:
+                langPath = basePath + "kor/" + filename + ".json";
+                break;
+            case NOR:
+                langPath = basePath + "nor/" + filename + ".json";
+                break;
+            case POL:
+                langPath = basePath + "pol/" + filename + ".json";
+                break;
+            case PTB:
+                langPath = basePath + "ptb/" + filename + ".json";
+                break;
+            case THA:
+                langPath = basePath + "tha/" + filename + ".json";
+                break;
+            case TUR:
+                langPath = basePath + "tur/" + filename + ".json";
+                break;
+            case UKR:
+                langPath = basePath + "ukr/" + filename + ".json";
+                break;
+            case VIE:
+                langPath = basePath + "vie/" + filename + ".json";
+                break;
+            default:
+                // Default to English if no matching language is found
+                langPath = basePath + "eng/" + filename + ".json";
+                break;
+        }
+        return langPath;
+    }
     @Override
     public void receiveAddAudio() {
         registerCustomAudio();
@@ -334,7 +423,7 @@ public class ModFile implements
         if (availableWarningIntroFiles.isEmpty()) {
             fileOptionsList.add("No Valid Files Found");
         } else {
-            fileOptionsList.add("Random Selection"); // Add the new option at the top
+            fileOptionsList.add(TEXT[5]); // Add the new option at the top
 
             // Add truncated file names for the dropdown display
             for (String fileName : availableWarningIntroFiles) {
@@ -379,385 +468,391 @@ public class ModFile implements
             return "No files available";
         }
         if ("RANDOM_SELECTION".equals(currentWarningIntroFilePath)) {
-            return "Random Selection";
+            return TEXT[5];
         }
         return currentWarningIntroFilePath;
     }
     public void receivePostInitialize() {
-        settingsPanel = new ModPanel();
-        if (playingLabel != null) {
-            playingLabel.text = ""; // Ensure the label is cleared on panel open
-        }
-        // Load available warning intro files (clear list first)
-        loadAvailableFiles();
-        loadPreferences();
-        // Convert the list of files to an array for the dropdown
-        List<String> fileOptionsList = new ArrayList<>();
-        if (availableWarningIntroFiles.isEmpty()) {
-            fileOptionsList.add("No Valid Files Found");
-            currentWarningIntroFilePath = null;
-        } else {
-            fileOptionsList.add("Random Selection"); // Add the new option at the top
 
-            // Add truncated file names for the dropdown display
-            for (String fileName : availableWarningIntroFiles) {
-                fileOptionsList.add(truncateFileName(fileName)); // Use the truncated names
+            uiStrings = CardCrawlGame.languagePack.getUIString("customlowhealthmusic:EnableLowHealthMusic");
+            if (uiStrings != null && uiStrings.TEXT != null) {
+                TEXT = uiStrings.TEXT;
             }
-        }
-        String[] fileOptions = fileOptionsList.toArray(new String[0]);
-
-        int savedIndex = 0;
-
-        if (currentWarningIntroFilePath != null) {
-            if ("RANDOM_SELECTION".equals(currentWarningIntroFilePath)) {
-                savedIndex = 0; // Index for "Random Selection"
+            settingsPanel = new ModPanel();
+            if (playingLabel != null) {
+                playingLabel.text = ""; // Ensure the label is cleared on panel open
+            }
+            // Load available warning intro files (clear list first)
+            loadAvailableFiles();
+            loadPreferences();
+            // Convert the list of files to an array for the dropdown
+            List<String> fileOptionsList = new ArrayList<>();
+            if (availableWarningIntroFiles.isEmpty()) {
+                fileOptionsList.add("No Valid Files Found");
+                currentWarningIntroFilePath = null;
             } else {
-                int index = availableWarningIntroFiles.indexOf(currentWarningIntroFilePath);
-                if (index != -1) {
-                    savedIndex = index + 1; // Adjust index since "Random Selection" is at index 0
+                fileOptionsList.add(TEXT[5]); // Add the new option at the top
+
+                // Add truncated file names for the dropdown display
+                for (String fileName : availableWarningIntroFiles) {
+                    fileOptionsList.add(truncateFileName(fileName)); // Use the truncated names
                 }
             }
-        }
-        // Toggle for enabling/disabling low health music
-        ModLabeledToggleButton lowHealthMusicToggle = new ModLabeledToggleButton(
-                "Enable Low Health Music",
-                386.686f, 720f, Settings.CREAM_COLOR, FontHelper.charDescFont,
-                lowHealthMusicEnabled,
-                settingsPanel,
-                (label) -> {
-                },
-                (button) -> {
-                    lowHealthMusicEnabled = button.enabled;
-                    savePreferences();
-                });
-        settingsPanel.addUIElement(lowHealthMusicToggle);
+            String[] fileOptions = fileOptionsList.toArray(new String[0]);
 
-        // Dropdown menu for file selection
-        fileDropdownMenu = new DropdownMenu(
-                (dropdownMenu, index, s) -> {
-                    if (isPlaying) {
-                        stopCurrentMusic(); // Stop the preview music if it's playing
-                        isTesting = false; // Reset the testing flag
-                    }
-                    setSelectedWarningIntroFile(index); // Set the selected file when an option is selected
-                },
-                fileOptions, // Array of file options
-                FontHelper.tipBodyFont, // Font for the dropdown
-                Settings.CREAM_COLOR // Text color
-        );
-        fileDropdownMenu.setSelectedIndex(savedIndex);
+            int savedIndex = 0;
 
-        // Create an IUIElement wrapper for the dropdown
-        dropdownWrapper = new IUIElement() {
-            @Override
-            public void render(SpriteBatch sb) {
-                // Render the dropdown at specific coordinates
-                fileDropdownMenu.render(sb,
-                        565.686f * Settings.xScale,
-                        518f * Settings.yScale);
-            }
-
-            @Override
-            public void update() {
-                // Update the dropdown
-                fileDropdownMenu.update();
-            }
-
-            @Override
-            public int renderLayer() {
-                return 3;
-            }
-
-            @Override
-            public int updateOrder() {
-                return 0;
-            }
-        };
-        settingsPanel.addUIElement(dropdownWrapper);
-
-
-        // Label to show the current selected file
-        ModLabel currentFileLabel = new ModLabel(
-                "Current File:",
-                386.686f,
-                492.5f,
-                Settings.CREAM_COLOR,
-                FontHelper.charDescFont,
-                settingsPanel,
-                (label) -> {
-                }
-        );
-        settingsPanel.addUIElement(currentFileLabel);
-
-        String explanationText = "To add new files, they must be .ogg files.";
-
-        // Label to display the explanation
-        ModLabel explanationLabel = new ModLabel(
-                explanationText,
-                386.686f,
-                555f,
-                Settings.CREAM_COLOR,
-                FontHelper.charDescFont,
-                settingsPanel,
-                (label) -> {
-                }
-        );
-        settingsPanel.addUIElement(explanationLabel);
-
-        ModSliderBetter volumeSlider = new ModSliderBetter(
-                "Volume Multiplier (x0.0 - x2.0)", // Slider label
-                690.0F, // x position on the screen
-                685.0F, // y position on the screen
-                0.0F, // Min value
-                2.0F, // Max value
-                getVolumeMultiplier(), // Default value
-                "%.2f", // Format string for the displayed value
-                settingsPanel,
-                (slider) -> {
-                    float sliderValue = slider.getValue();
-                    setVolumeMultiplier(sliderValue);
-                    savePreferences();
-                    try {
-                        Preferences prefs = Gdx.app.getPreferences(PREFS_NAME);
-                        prefs.putFloat("volumeMultiplier", sliderValue);
-                        prefs.flush();
-                    } catch (Exception e) {
-                        e.printStackTrace();
+            if (currentWarningIntroFilePath != null) {
+                if ("RANDOM_SELECTION".equals(currentWarningIntroFilePath)) {
+                    savedIndex = 0; // Index for "Random Selection"
+                } else {
+                    int index = availableWarningIntroFiles.indexOf(currentWarningIntroFilePath);
+                    if (index != -1) {
+                        savedIndex = index + 1; // Adjust index since "Random Selection" is at index 0
                     }
                 }
-        );
+            }
+            // Toggle for enabling/disabling low health music
+            ModLabeledToggleButton lowHealthMusicToggle = new ModLabeledToggleButton(
+                    TEXT[0],
+                    386.686f, 720f, Settings.CREAM_COLOR, FontHelper.charDescFont,
+                    lowHealthMusicEnabled,
+                    settingsPanel,
+                    (label) -> {
+                    },
+                    (button) -> {
+                        lowHealthMusicEnabled = button.enabled;
+                        savePreferences();
+                    });
+            settingsPanel.addUIElement(lowHealthMusicToggle);
+
+            // Dropdown menu for file selection
+            fileDropdownMenu = new DropdownMenu(
+                    (dropdownMenu, index, s) -> {
+                        if (isPlaying) {
+                            stopCurrentMusic(); // Stop the preview music if it's playing
+                            isTesting = false; // Reset the testing flag
+                        }
+                        setSelectedWarningIntroFile(index); // Set the selected file when an option is selected
+                    },
+                    fileOptions, // Array of file options
+                    FontHelper.tipBodyFont, // Font for the dropdown
+                    Settings.CREAM_COLOR // Text color
+            );
+            fileDropdownMenu.setSelectedIndex(savedIndex);
+
+            // Create an IUIElement wrapper for the dropdown
+            dropdownWrapper = new IUIElement() {
+                @Override
+                public void render(SpriteBatch sb) {
+                    // Render the dropdown at specific coordinates
+                    fileDropdownMenu.render(sb,
+                            565.686f * Settings.xScale,
+                            518f * Settings.yScale);
+                }
+
+                @Override
+                public void update() {
+                    // Update the dropdown
+                    fileDropdownMenu.update();
+                }
+
+                @Override
+                public int renderLayer() {
+                    return 3;
+                }
+
+                @Override
+                public int updateOrder() {
+                    return 0;
+                }
+            };
+            settingsPanel.addUIElement(dropdownWrapper);
+
+
+            // Label to show the current selected file
+            ModLabel currentFileLabel = new ModLabel(
+                    TEXT[3],
+                    386.686f,
+                    492.5f,
+                    Settings.CREAM_COLOR,
+                    FontHelper.charDescFont,
+                    settingsPanel,
+                    (label) -> {
+                    }
+            );
+            settingsPanel.addUIElement(currentFileLabel);
+
+            String explanationText = TEXT[4];
+
+            // Label to display the explanation
+            ModLabel explanationLabel = new ModLabel(
+                    explanationText,
+                    386.686f,
+                    555f,
+                    Settings.CREAM_COLOR,
+                    FontHelper.charDescFont,
+                    settingsPanel,
+                    (label) -> {
+                    }
+            );
+            settingsPanel.addUIElement(explanationLabel);
+
+            ModSliderBetter volumeSlider = new ModSliderBetter(
+                    TEXT[1], // Slider label
+                    690.0F, // x position on the screen
+                    685.0F, // y position on the screen
+                    0.0F, // Min value
+                    2.0F, // Max value
+                    getVolumeMultiplier(), // Default value
+                    "%.2f", // Format string for the displayed value
+                    settingsPanel,
+                    (slider) -> {
+                        float sliderValue = slider.getValue();
+                        setVolumeMultiplier(sliderValue);
+                        savePreferences();
+                        try {
+                            Preferences prefs = Gdx.app.getPreferences(PREFS_NAME);
+                            prefs.putFloat("volumeMultiplier", sliderValue);
+                            prefs.flush();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+            );
 
 // Set the slider's value to the current volume multiplier
-        volumeSlider.setValue(getVolumeMultiplier());
-        settingsPanel.addUIElement(volumeSlider);
+            volumeSlider.setValue(getVolumeMultiplier());
+            settingsPanel.addUIElement(volumeSlider);
 
-        ModButton openFolderButton = new ModButton(
-                1100f, // X position
-                440f, // Y position
-                settingsPanel,
-                (button) -> {
-                    openFileExplorer(getCustomMusicFolderPath());
-                }
-        );
-        settingsPanel.addUIElement(openFolderButton);
+            ModButton openFolderButton = new ModButton(
+                    1100f, // X position
+                    440f, // Y position
+                    settingsPanel,
+                    (button) -> {
+                        openFileExplorer(getCustomMusicFolderPath());
+                    }
+            );
+            settingsPanel.addUIElement(openFolderButton);
 
 // Create the label next to the button
-        ModLabel folderButtonLabel = new ModLabel(
-                "Open Custom Music Folder", // Text
-                1224.314f, // X position, adjust as needed to be right of the button
-                495f, // Y position, slightly higher to align with button
-                Settings.CREAM_COLOR, // Text color
-                FontHelper.charDescFont, // Font
-                settingsPanel,
-                (label) -> {
-                }
-        );
-        settingsPanel.addUIElement(folderButtonLabel);
+            ModLabel folderButtonLabel = new ModLabel(
+                    TEXT[6], // Open Custom Folder
+                    1224.314f, // X position, adjust as needed to be right of the button
+                    495f, // Y position, slightly higher to align with button
+                    Settings.CREAM_COLOR, // Text color
+                    FontHelper.charDescFont, // Font
+                    settingsPanel,
+                    (label) -> {
+                    }
+            );
+            settingsPanel.addUIElement(folderButtonLabel);
 
 // Button for previewing the selected music file
-        ModButton previewButton = new ModButton(
-                940.0f, // X position
-                440.0f,    // Y position
-                settingsPanel,
-                (button) -> {
-                    if (availableWarningIntroFiles.isEmpty() || currentWarningIntroFilePath == null || currentWarningIntroFilePath.isEmpty()) {
-                        // No valid files available
-                        System.out.println("No valid files found to preview.");
-                        if (playingLabel != null) {
-                            playingLabel.text = "No valid files found."; // Show the message
-                        }
-                        return;
-                    }
-
-                    if (isTesting || isPlaying) {
-                        // If it's testing and music is playing, stop it
-                        isTesting = false;
-                        stopCurrentMusic(); // Stop music if already playing
-                        System.out.println("Music stopped.");
-                        if (playingLabel != null) {
-                            playingLabel.text = ""; // Clear the label when the music stops
-                        }
-                        CardCrawlGame.music.unsilenceBGM(); // Resume the normal background music
-                    } else {
-                        // If not testing, start playing the preview music
-                        String selectedWarningIntro;
-                        if ("RANDOM_SELECTION".equals(currentWarningIntroFilePath)) {
-                            // Handle random selection
-                            if (availableWarningIntroFiles.isEmpty()) {
-                                // No files available
-                                System.out.println("No valid files found to preview.");
-                                if (playingLabel != null) {
-                                    playingLabel.text = "No valid files found."; // Show the message
-                                }
-                                return;
-                            }
-
-                            String randomTrack;
-                            if (availableWarningIntroFiles.size() == 1) {
-                                randomTrack = availableWarningIntroFiles.get(0);
-                            } else {
-                                do {
-                                    int randomIndex = MathUtils.random(availableWarningIntroFiles.size() - 1);
-                                    randomTrack = availableWarningIntroFiles.get(randomIndex);
-                                } while (randomTrack.equals(lastPlayedTrack));
-                            }
-                            selectedWarningIntro = randomTrack;
-                            lastPlayedTrack = selectedWarningIntro;
-                            System.out.println("Randomly selected file for preview: " + selectedWarningIntro);
-                        } else {
-                            selectedWarningIntro = getCurrentWarningIntroFileName();
-                            if (selectedWarningIntro == null || selectedWarningIntro.isEmpty()) {
-                                System.out.println("No valid files found to preview.");
-                                if (playingLabel != null) {
-                                    playingLabel.text = "No valid files found."; // Show the message
-                                }
-                                return;
-                            }
-                        }
-
-                        String fullPath = getCustomMusicFolderPath() + File.separator + selectedWarningIntro;
-                        File file = new File(fullPath);
-
-                        if (!file.exists()) {
-                            System.out.println("Selected file does not exist: " + fullPath);
+            ModButton previewButton = new ModButton(
+                    940.0f, // X position
+                    440.0f,    // Y position
+                    settingsPanel,
+                    (button) -> {
+                        if (availableWarningIntroFiles.isEmpty() || currentWarningIntroFilePath == null || currentWarningIntroFilePath.isEmpty()) {
+                            // No valid files available
+                            System.out.println("No valid files found to preview.");
                             if (playingLabel != null) {
-                                playingLabel.text = "Selected file does not exist."; // Show the message
+                                playingLabel.text = TEXT[7]; // Show the message
                             }
                             return;
                         }
 
-                        System.out.println("Attempting to play: " + fullPath);
-                        isTesting = true;  // Set testing mode to true
-                        CardCrawlGame.music.silenceBGMInstantly(); // Silence the normal background music
-                        playTempBgm(fullPath); // Play selected music file
-                        isPlaying = true;
-                        System.out.println("Music playing: " + selectedWarningIntro);
-                        if (playingLabel != null) {
-                            playingLabel.text = "Playing..."; // Show the label when the music is playing
+                        if (isTesting || isPlaying) {
+                            // If it's testing and music is playing, stop it
+                            isTesting = false;
+                            stopCurrentMusic(); // Stop music if already playing
+                            System.out.println("Music stopped.");
+                            if (playingLabel != null) {
+                                playingLabel.text = ""; // Clear the label when the music stops
+                            }
+                            CardCrawlGame.music.unsilenceBGM(); // Resume the normal background music
+                        } else {
+                            // If not testing, start playing the preview music
+                            String selectedWarningIntro;
+                            if ("RANDOM_SELECTION".equals(currentWarningIntroFilePath)) {
+                                // Handle random selection
+                                if (availableWarningIntroFiles.isEmpty()) {
+                                    // No files available
+                                    System.out.println("No valid files found to preview.");
+                                    if (playingLabel != null) {
+                                        playingLabel.text = TEXT[7]; // Show the message
+                                    }
+                                    return;
+                                }
+
+                                String randomTrack;
+                                if (availableWarningIntroFiles.size() == 1) {
+                                    randomTrack = availableWarningIntroFiles.get(0);
+                                } else {
+                                    do {
+                                        int randomIndex = MathUtils.random(availableWarningIntroFiles.size() - 1);
+                                        randomTrack = availableWarningIntroFiles.get(randomIndex);
+                                    } while (randomTrack.equals(lastPlayedTrack));
+                                }
+                                selectedWarningIntro = randomTrack;
+                                lastPlayedTrack = selectedWarningIntro;
+                                System.out.println("Randomly selected file for preview: " + selectedWarningIntro);
+                            } else {
+                                selectedWarningIntro = getCurrentWarningIntroFileName();
+                                if (selectedWarningIntro == null || selectedWarningIntro.isEmpty()) {
+                                    System.out.println("No valid files found to preview.");
+                                    if (playingLabel != null) {
+                                        playingLabel.text = TEXT[7]; // Show the message
+                                    }
+                                    return;
+                                }
+                            }
+
+                            String fullPath = getCustomMusicFolderPath() + File.separator + selectedWarningIntro;
+                            File file = new File(fullPath);
+
+                            if (!file.exists()) {
+                                System.out.println("Selected file does not exist: " + fullPath);
+                                if (playingLabel != null) {
+                                    playingLabel.text = TEXT[8]; // Show the message
+                                }
+                                return;
+                            }
+
+                            System.out.println("Attempting to play: " + fullPath);
+                            isTesting = true;  // Set testing mode to true
+                            CardCrawlGame.music.silenceBGMInstantly(); // Silence the normal background music
+                            playTempBgm(fullPath); // Play selected music file
+                            isPlaying = true;
+                            System.out.println("Music playing: " + selectedWarningIntro);
+                            if (playingLabel != null) {
+                                playingLabel.text = TEXT[9]; // Show the label when the music is playing
+                            }
                         }
                     }
-                }
-        );
-        settingsPanel.addUIElement(previewButton);
+            );
+            settingsPanel.addUIElement(previewButton);
 
-        playingLabel = new ModLabel(
-                "", // Initially empty
-                955.0f, // X position, adjust as needed to be right of the button
-                435.0f, // Y position, slightly higher to align with button
-                Settings.CREAM_COLOR, // Text color
-                FontHelper.charDescFont, // Font
-                settingsPanel,
-                (label) -> {
-                }
-        );
-        settingsPanel.addUIElement(playingLabel);
-        if (isTesting) {
-            playingLabel.text = "Playing...";
-        } else {
-            playingLabel.text = "";
-        }
+            playingLabel = new ModLabel(
+                    "", // Initially empty
+                    955.0f, // X position, adjust as needed to be right of the button
+                    435.0f, // Y position, slightly higher to align with button
+                    Settings.CREAM_COLOR, // Text color
+                    FontHelper.charDescFont, // Font
+                    settingsPanel,
+                    (label) -> {
+                    }
+            );
+            settingsPanel.addUIElement(playingLabel);
+            if (isTesting) {
+                playingLabel.text = TEXT[10];
+            } else {
+                playingLabel.text = "";
+            }
 
 // Label to show "Preview" next to the button
-        ModLabel previewButtonLabel = new ModLabel(
-                "Preview", // Text
-                955f, // X position, adjust as needed to be right of the button
-                555.0f, // Y position, slightly higher to align with button
-                Settings.CREAM_COLOR, // Text color
-                FontHelper.charDescFont, // Font
-                settingsPanel,
-                (label) -> {
-                }
-        );
-        settingsPanel.addUIElement(previewButtonLabel);
+            ModLabel previewButtonLabel = new ModLabel(
+                    TEXT[2], // Text
+                    955f, // X position, adjust as needed to be right of the button
+                    555.0f, // Y position, slightly higher to align with button
+                    Settings.CREAM_COLOR, // Text color
+                    FontHelper.charDescFont, // Font
+                    settingsPanel,
+                    (label) -> {
+                    }
+            );
+            settingsPanel.addUIElement(previewButtonLabel);
 
-        ModSliderBetter lowHealthSlider = new ModSliderBetter(
-                "Health % of Max HP Trigger", // Slider label
-                690.0F, // X position
-                630.0F, // Y position
-                0.0F, // Min value (0%)
-                100.0F, // Max value (100%)
-                getLowHealthThreshold() * 100.0F, // Default value (current threshold percentage)
-                "%.0f%%", // Format string for displayed value
-                settingsPanel,
-                (slider) -> {
-                    float sliderValue = slider.getValue();
-                    setLowHealthThreshold(sliderValue / 100.0F);  // Convert percentage to decimal
-                    savePreferences();  // Save the threshold to preferences
-                }
-        );
+            ModSliderBetter lowHealthSlider = new ModSliderBetter(
+                    TEXT[10], // Slider label
+                    690.0F, // X position
+                    630.0F, // Y position
+                    0.0F, // Min value (0%)
+                    100.0F, // Max value (100%)
+                    getLowHealthThreshold() * 100.0F, // Default value (current threshold percentage)
+                    "%.0f%%", // Format string for displayed value
+                    settingsPanel,
+                    (slider) -> {
+                        float sliderValue = slider.getValue();
+                        setLowHealthThreshold(sliderValue / 100.0F);  // Convert percentage to decimal
+                        savePreferences();  // Save the threshold to preferences
+                    }
+            );
 
-        lowHealthSlider.setValue(getLowHealthThreshold() * 100.0F);  // Set slider value to current threshold
-        settingsPanel.addUIElement(lowHealthSlider);
+            lowHealthSlider.setValue(getLowHealthThreshold() * 100.0F);  // Set slider value to current threshold
+            settingsPanel.addUIElement(lowHealthSlider);
 // Restore Default Tracks Button
-        ModButton restoreDefaultsButton = new ModButton(
-                1100f, // X position
-                620.0f, // Y position
-                settingsPanel,
-                (button) -> {
-                    restoreDefaultTracks();
-                }
-        );
-        settingsPanel.addUIElement(restoreDefaultsButton);
+            ModButton restoreDefaultsButton = new ModButton(
+                    1100f, // X position
+                    620.0f, // Y position
+                    settingsPanel,
+                    (button) -> {
+                        restoreDefaultTracks();
+                    }
+            );
+            settingsPanel.addUIElement(restoreDefaultsButton);
 
 // Label for the Restore Defaults Button
-        ModLabel restoreDefaultsLabel = new ModLabel(
-                "Restore Default Tracks", // Text
-                1224.314f, // X position
-                675.0f, // Y position
-                Settings.CREAM_COLOR, // Text color
-                FontHelper.charDescFont, // Font
-                settingsPanel,
-                (label) -> {
-                }
-        );
-        settingsPanel.addUIElement(restoreDefaultsLabel);
+            ModLabel restoreDefaultsLabel = new ModLabel(
+                    TEXT[11], // Text
+                    1224.314f, // X position
+                    675.0f, // Y position
+                    Settings.CREAM_COLOR, // Text color
+                    FontHelper.charDescFont, // Font
+                    settingsPanel,
+                    (label) -> {
+                    }
+            );
+            settingsPanel.addUIElement(restoreDefaultsLabel);
 
-        // Refresh Files Button
-        ModButton refreshFilesButton = new ModButton(
-                1100f, // X position
-                530.0f, // Y position
-                settingsPanel,
-                (button) -> {
-                    refreshAvailableFiles();
-                }
-        );
-        settingsPanel.addUIElement(refreshFilesButton);
+            // Refresh Files Button
+            ModButton refreshFilesButton = new ModButton(
+                    1100f, // X position
+                    530.0f, // Y position
+                    settingsPanel,
+                    (button) -> {
+                        refreshAvailableFiles();
+                    }
+            );
+            settingsPanel.addUIElement(refreshFilesButton);
 
 // Label for the Refresh Files Button
-        ModLabel refreshFilesLabel = new ModLabel(
-                "Refresh Files", // Text
-                1224.314f, // X position
-                585.0f, // Y position
-                Settings.CREAM_COLOR, // Text color
-                FontHelper.charDescFont, // Font
-                settingsPanel,
-                (label) -> {
-                }
-        );
-        settingsPanel.addUIElement(refreshFilesLabel);
+            ModLabel refreshFilesLabel = new ModLabel(
+                    TEXT[12], // Text
+                    1224.314f, // X position
+                    585.0f, // Y position
+                    Settings.CREAM_COLOR, // Text color
+                    FontHelper.charDescFont, // Font
+                    settingsPanel,
+                    (label) -> {
+                    }
+            );
+            settingsPanel.addUIElement(refreshFilesLabel);
 
-        ModLabeledToggleButton loopingToggleButton = new ModLabeledToggleButton(
-                "Looping", // Text next to the checkbox
-                386.686f,    // X position
-                430.0f,    // Y position
-                Settings.CREAM_COLOR, // Text color
-                FontHelper.charDescFont, // Font
-                isMusicLooping, // Initial value from preferences
-                settingsPanel, // Parent panel
-                (label) -> {}, // Label updater
-                (button) -> {
-                    // Update the looping setting when the checkbox is clicked
-                    isMusicLooping = button.enabled;
-                    savePreferences(); // Save the new setting
-                    System.out.println("Looping setting changed to: " + isMusicLooping);
-                }
-        );
+            ModLabeledToggleButton loopingToggleButton = new ModLabeledToggleButton(
+                    TEXT[13], // Text next to the checkbox
+                    386.686f,    // X position
+                    430.0f,    // Y position
+                    Settings.CREAM_COLOR, // Text color
+                    FontHelper.charDescFont, // Font
+                    isMusicLooping, // Initial value from preferences
+                    settingsPanel, // Parent panel
+                    (label) -> {
+                    }, // Label updater
+                    (button) -> {
+                        // Update the looping setting when the checkbox is clicked
+                        isMusicLooping = button.enabled;
+                        savePreferences(); // Save the new setting
+                        System.out.println("Looping setting changed to: " + isMusicLooping);
+                    }
+            );
 
-        settingsPanel.addUIElement(loopingToggleButton);
+            settingsPanel.addUIElement(loopingToggleButton);
 
 
         Texture badgeTexture = new Texture(Gdx.files.internal("customlowhealthmusicResources/images/ui/badge.png"));
-        BaseMod.registerModBadge(badgeTexture, "Custom Low Health Music", "Ninja Puppy", "Custom music for low health situations.", settingsPanel);
+        BaseMod.registerModBadge(badgeTexture, TEXT[14], "Ninja Puppy", TEXT[15], settingsPanel);
     }
     private void refreshAvailableFiles() {
         // Reload the available files

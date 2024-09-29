@@ -1,0 +1,22 @@
+{
+  "customlowhealthmusic:EnableLowHealthMusic": {
+    "TEXT": [
+      "Aktiver Lav Helse Musikk",
+      "Volummultiplikator (x0,0 - x2,0)",
+      "Forhåndsvisning",
+      "Gjeldende fil:",
+      "For å legge til nye filer, må de være .ogg-filer.",
+      "Tilfeldig utvalg",
+      "Åpne Egendefinert Musikkmappe",
+      "Ingen gyldige filer funnet.",
+      "Valgt fil eksisterer ikke.",
+      "Spiller...",
+      "Helse % av Maks HP-utløser",
+      "Gjenopprett Standard Spor",
+      "Oppdater Filer",
+      "Løkke",
+      "Egendefinert Lav Helse Musikk",
+      "Egendefinert musikk for situasjoner med lav helse."
+    ]
+  }
+}
