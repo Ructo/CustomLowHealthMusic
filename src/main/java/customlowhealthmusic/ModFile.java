@@ -64,12 +64,14 @@ public class ModFile implements
     private static final String LOW_HEALTH_MUSIC_ENABLED_KEY = "lowHealthMusicEnabled";
     private static final String SELECTED_FILE_KEY = "selectedWarningIntroFile";
     private static final String LOOPING_PREF_KEY = "isMusicLooping";
+    private static final String ELITE_MUSIC_ENABLED_KEY = "eliteMusicEnabled";
+    public static boolean eliteMusicEnabled = true;
     public static boolean isPlaying = false;
     public static boolean isTesting = false;
     public static boolean isDead = false;
     public static boolean isLoaded = false;
     private static boolean isMusicLooping = true;
-     public static boolean isBossStingerPlaying = false;  // Flag for boss stinger
+    public static boolean isBossStingerPlaying = false;  // Flag for boss stinger
     public static boolean bossBattleEnded = false;       // Prevent health checks after boss defeat
     public static String currentTempMusicKey = null;
     public static String currentRoomType = null;
@@ -109,10 +111,9 @@ public class ModFile implements
     private void loadPreferences() {
         Preferences prefs = Gdx.app.getPreferences(PREFS_NAME);
         lowHealthMusicEnabled = prefs.getBoolean(LOW_HEALTH_MUSIC_ENABLED_KEY, true);
+        eliteMusicEnabled = prefs.getBoolean(ELITE_MUSIC_ENABLED_KEY, true);
         currentWarningIntroFilePath = prefs.getString(SELECTED_FILE_KEY, "Pokemon Low HP.ogg"); // Default to Pokemon if nothing is saved
         volumeMultiplier = prefs.getFloat("volumeMultiplier", 1.0f);
-
-        // Load the looping preference
         isMusicLooping = prefs.getBoolean(LOOPING_PREF_KEY, true); // Default to true
         System.out.println("Preferences loaded with looping: " + isMusicLooping);
 
@@ -133,6 +134,7 @@ public class ModFile implements
     private void savePreferences() {
         Preferences prefs = Gdx.app.getPreferences(PREFS_NAME);
         prefs.putBoolean(LOW_HEALTH_MUSIC_ENABLED_KEY, lowHealthMusicEnabled);
+        prefs.putBoolean(ELITE_MUSIC_ENABLED_KEY, eliteMusicEnabled);
         prefs.putFloat("volumeMultiplier", volumeMultiplier);
 
         if (currentWarningIntroFilePath != null) {
@@ -275,7 +277,7 @@ public class ModFile implements
             // Stop any currently playing music
             stopCurrentMusic();
 
-            System.out.println("Attempting to play file: " + path);
+            System.out.println("Playing selected file: " + path);
             FileHandle fileHandle = Gdx.files.absolute(path);
 
             if (!fileHandle.exists()) {
@@ -850,6 +852,21 @@ public class ModFile implements
 
             settingsPanel.addUIElement(loopingToggleButton);
 
+        ModLabeledToggleButton eliteMusicToggle = new ModLabeledToggleButton(
+                TEXT[16],
+                386.686f,
+                380f,
+                Settings.CREAM_COLOR,
+                FontHelper.charDescFont,
+                eliteMusicEnabled,
+                settingsPanel,
+                (label) -> {},
+                (button) -> {
+                    eliteMusicEnabled = button.enabled;
+                    savePreferences();
+                });
+        settingsPanel.addUIElement(eliteMusicToggle);
+
 
         Texture badgeTexture = new Texture(Gdx.files.internal("customlowhealthmusicResources/images/ui/badge.png"));
         BaseMod.registerModBadge(badgeTexture, TEXT[14], "Ninja Puppy", TEXT[15], settingsPanel);
@@ -1136,7 +1153,7 @@ public class ModFile implements
             return;
         }
 
-        System.out.println("Playing selected file: " + fullPath);
+        System.out.println("Attempting to play selected file: " + fullPath);
         playTempBgm(fullPath); // Play the music using the full path
         isPlaying = true;
     }
@@ -1246,9 +1263,17 @@ public class ModFile implements
                         CardCrawlGame.music.playTempBgmInstantly(bossMusicKey);
                     } else if (currentRoomType != null && currentRoomType.equals("ELITE")) {
                         // Keep playing elite music until elites are dead
-                        stopCurrentMusic(); // Stop the current health warning music
-                        CardCrawlGame.music.silenceTempBgmInstantly();
-                        CardCrawlGame.music.playTempBgmInstantly("STS_EliteBoss_NewMix_v1.ogg");
+                        if (ModFile.eliteMusicEnabled) {
+                            // Keep playing elite music until elites are dead
+                            stopCurrentMusic(); // Stop the current health warning music
+                            CardCrawlGame.music.silenceTempBgmInstantly();
+                            CardCrawlGame.music.playTempBgmInstantly("STS_EliteBoss_NewMix_v1.ogg");
+                        } else {
+                            // Revert to standard background music if elite music override is disabled
+                            stopCurrentMusic(); // Stop the current health warning music
+                            CardCrawlGame.music.silenceTempBgmInstantly();
+                            CardCrawlGame.music.unsilenceBGM();
+                        }
                     } else {
                         // Handle non-boss, non-elite rooms
                         System.out.println("Non-boss or Elite room stop.");

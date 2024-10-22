@@ -2,21 +2,22 @@
   "customlowhealthmusic:EnableLowHealthMusic": {
     "TEXT": [
       "Habilitar Música de Salud Baja",
-      "Multiplicador de Volumen (x0.0 - x2.0)",
+      "Volumen (x0.0 - x2.0)",
       "Vista Previa",
-      "Archivo Actual:",
-      "Para agregar nuevos archivos, deben ser en formato .ogg.",
+      "Actual:",
+      "Los archivos deben estar en formato .ogg.",
       "Selección Aleatoria",
-      "Abrir Carpeta de Música Personalizada",
+      "Abrir Carpeta de Música",
       "No se encontraron archivos válidos.",
       "El archivo seleccionado no existe.",
       "Reproduciendo...",
-      "Porcentaje de Salud para Activar (%)",
-      "Restaurar Pistas Predeterminadas",
+      "Porcentaje de Salud para Activar",
+      "Restaurar Pistas",
       "Actualizar Archivos",
       "Repetición",
       "Música Personalizada para Salud Baja",
       "Música personalizada para situaciones de salud baja."
+      "Activar parche de música de élite"
     ]
   }
 }

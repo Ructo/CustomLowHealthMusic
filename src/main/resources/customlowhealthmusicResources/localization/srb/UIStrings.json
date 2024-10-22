@@ -1,22 +1,23 @@
 {
   "customlowhealthmusic:EnableLowHealthMusic": {
     "TEXT": [
-      "Омогући музику за низак ниво здравља",
-      "Мултипликатор јачине звука (x0.0 - x2.0)",
-      "Преглед",
-      "Тренутна датотека:",
-      "Да бисте додали нове датотеке, оне морају бити у .ogg формату.",
-      "Случајни избор",
-      "Отвори фасциклу са прилагођеном музиком",
-      "Није пронађена ниједна важећа датотека.",
-      "Изабрана датотека не постоји.",
-      "Репродукција...",
-      "Проценат здравља за активирање од макс. HP",
-      "Врати подразумеване нумере",
-      "Освежи датотеке",
-      "Понављање",
-      "Прилагођена музика за низак ниво здравља",
-      "Прилагођена музика за ситуације са ниским нивоом здравља."
+      "Omogući muziku za nizak nivo zdravlja",
+      "Multiplikator jačine zvuka (x0.0 - x2.0)",
+      "Pregled",
+      "Trenutna datoteka:",
+      "Da biste dodali nove datoteke, one moraju biti u .ogg formatu.",
+      "Slučajni izbor",
+      "Otvori fasciklu sa prilagođenom muzikom",
+      "Nije pronađena nijedna važeća datoteka.",
+      "Izabrana datoteka ne postoji.",
+      "Reprodukcija...",
+      "Procenat zdravlja za aktiviranje od maks. HP",
+      "Vrati podrazumevane numere",
+      "Osveži datoteke",
+      "Ponavljanje",
+      "Prilagođena muzika za nizak nivo zdravlja",
+      "Prilagođena muzika za situacije sa niskim nivoom zdravlja."
+      "Omogući Patch Elite Muzike"
     ]
   }
 }

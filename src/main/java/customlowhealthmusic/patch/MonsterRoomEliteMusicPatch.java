@@ -56,8 +56,14 @@ public class MonsterRoomEliteMusicPatch {
                 // Play special Act 4 music for Spire Spear/Shield
                 CardCrawlGame.music.playTempBgmInstantly("STS_Act4_BGM_v2.ogg", true);
             } else {
-                // Play the standard elite music
-                CardCrawlGame.music.playTempBgmInstantly("STS_EliteBoss_NewMix_v1.ogg", true);
+                if (ModFile.eliteMusicEnabled) {
+                    // Play the standard elite music
+                    CardCrawlGame.music.playTempBgmInstantly("STS_EliteBoss_NewMix_v1.ogg", true);
+                } else {
+                    // Revert to standard background music
+                    CardCrawlGame.music.silenceTempBgmInstantly();
+                    CardCrawlGame.music.unsilenceBGM();
+                }
             }
         }
     }
