@@ -1197,6 +1197,7 @@ public class ModFile implements
                     isFightingHeart = true;
                 } else if (mo.id.equals("SpireShield") || mo.id.equals("SpireSpear")) {
                     isFightingSpireSpearOrShield = true;
+                    CardCrawlGame.music.precacheTempBgm("STS_Act4_BGM_v2.ogg");
                 } else if (AbstractDungeon.getCurrRoom().event instanceof MindBloom) {
                     isEventMindBloom = true;
                 }
@@ -1245,10 +1246,12 @@ public class ModFile implements
                         }
                     } else if (isFightingHeart) {
                         stopCurrentMusic(); // Stop the current health warning music
+                        CardCrawlGame.music.precacheTempBgm("BOSS_ENDING");
                         CardCrawlGame.music.silenceTempBgmInstantly();
-                        AbstractDungeon.getCurrRoom().playBgmInstantly("BOSS_ENDING");
+                        CardCrawlGame.music.playTempBgmInstantly("BOSS_ENDING");
                     } else if (isFightingSpireSpearOrShield) {
                         stopCurrentMusic(); // Stop the current health warning music
+                        CardCrawlGame.music.precacheTempBgm("STS_Act4_BGM_v2.ogg");
                         CardCrawlGame.music.silenceTempBgmInstantly();
                         CardCrawlGame.music.playTempBgmInstantly("STS_Act4_BGM_v2.ogg");
                     } else if (isEventMindBloom) {

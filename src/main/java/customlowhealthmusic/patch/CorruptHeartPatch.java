@@ -20,10 +20,18 @@ public class CorruptHeartPatch {
     @SpirePrefixPatch
     public static SpireReturn<Void> Prefix(CorruptHeart __instance) {
         // Replace the original music and unsilence logic
-        CardCrawlGame.music.precacheTempBgm("BOSS_ENDING");
+
 
         // Check for player's low health and handle low health music if necessary
         ModFile.checkPlayerHealth();
+        if (!ModFile.isPlaying) {
+            CardCrawlGame.music.precacheTempBgm("BOSS_ENDING");
+            // If low health music is not playing, allow the elite music
+            CardCrawlGame.music.unsilenceBGM();
+            AbstractDungeon.scene.fadeOutAmbiance();
+            CardCrawlGame.music.playPrecachedTempBgm();
+        } 
+
 
         // Replicate the rest of the original method logic
         int invincibleAmt = 300;
