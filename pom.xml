@@ -4,7 +4,7 @@
     <groupId>UnimportantInfo</groupId>
 
     <artifactId>customlowhealthmusic</artifactId>
-    <version>1.0.4</version>
+    <version>1.0.5</version>
     <name>Custom Low Health Music</name>
     <description>Pick from several provided files or add your own files to play! Or if you just want the audio fixes, uncheck the Enable Low Health Music.
 

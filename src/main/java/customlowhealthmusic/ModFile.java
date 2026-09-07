@@ -338,17 +338,25 @@ public class ModFile implements
             dir.mkdirs(); // Create the directory if it doesn't exist
         }
 
-        // Now, load the available .ogg files from the directory
-        if (dir.listFiles() != null) {
-            for (File file : dir.listFiles()) {
-                if (file.isFile() && file.getName().endsWith(".ogg")) {
+        File[] files = dir.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (!file.isFile()) {
+                    continue;
+                }
+
+                String fileName = file.getName().toLowerCase();
+
+                if (fileName.endsWith(".ogg") ||
+                        fileName.endsWith(".mp3") ||
+                        fileName.endsWith(".wav")) {
                     availableWarningIntroFiles.add(file.getName());
                 }
             }
         }
 
         if (availableWarningIntroFiles.isEmpty()) {
-            System.out.println("No .ogg files found in: " + dir.getAbsolutePath());
+            System.out.println("No supported audio files (.ogg, .mp3, .wav) found in: " + dir.getAbsolutePath());
         }
     }
 
@@ -412,7 +420,11 @@ public class ModFile implements
         for (String fileName : availableWarningIntroFiles) {
             File file = new File(getCustomMusicFolderPath() + File.separator + fileName);
             if (file.exists()) {
-                String fileKey = fileName.substring(0, fileName.length() - 4); // Remove ".ogg" from the name
+                int dotIndex = fileName.lastIndexOf('.');
+                String fileKey = dotIndex > 0
+                        ? fileName.substring(0, dotIndex)
+                        : fileName;
+
                 BaseMod.addAudio(makeID(fileKey), file.getAbsolutePath());
                 System.out.println("Registered audio file: " + fileName);
             }
